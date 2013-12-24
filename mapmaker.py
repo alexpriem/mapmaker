@@ -129,9 +129,9 @@ maxdata=get_max_data(data)
 
 line=f.readline()
 mapdata, datum, line=read_frame(f,varnames,line)
-j=0
+j=1
 while mapdata is not None:
-    outfile='polen_'+datum
+    outfile='polen_'+str(10000+j)[1:]
     sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+filename)
     layer = sh.GetLayer()
     save_map (mapdata, outfile, layer)
