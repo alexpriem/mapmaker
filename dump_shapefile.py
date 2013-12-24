@@ -18,8 +18,6 @@ varnames=[]
 for fld in sf.fields[1:]:
     varnames.append(fld[0])
 
-print varnames
-
 l=[ '"'+v+'"'  for v in varnames]
 header=separator.join(l)
 f.write(header+'\n')
