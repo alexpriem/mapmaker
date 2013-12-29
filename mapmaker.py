@@ -83,10 +83,11 @@ def get_max_data(filename):
             maxdata=val
     return maxdata
 
+
+
 def read_frame(f,varnames, prevline=None):
     
-    datadict={}
-    
+    datadict={}    
     cols=prevline.strip().split(',')
     prevcol=None
     while prevcol is None or prevcol==cols[0]:        
@@ -111,7 +112,7 @@ def read_simple_frame(f, varnames):
     return datadict
 
 
-def save_js (args):
+def prep_js (args):
 
     csvfile=args['csvfile']
     sep=args['sep']
@@ -120,18 +121,16 @@ def save_js (args):
     f=open ('data\\'+csvfile)
     
     varnames=f.readline().strip().split(',')
-    line_out='var data=[\n'
+    line_out=' <script type="text/javascript">\n var data=[\n'
     s=''
     for line in f.readlines():
         s+=line_out
         cols=line.strip().split(sep)
         line_out='['+','.join(cols)+'],\n'
     line_out=line_out[:-2]
-    s+=line_out
-    g=open(outfile+'.js','w')
-    g.write(s)
-    g.close()
+    s+=line_out+'\n</script>\n'
     f.close()
+    return s
 
 
 def save_map (args, mapdata, layer):
@@ -171,8 +170,9 @@ def save_map (args, mapdata, layer):
 #        el.set('cursor', 'pointer')
 #        el.set('onclick', "toggle_hist(this)")
         el.set('class', "outline")
-    ET.ElementTree(tree).write(outfile+'.svg')
-
+    g = StringIO()
+    ET.ElementTree(tree).write(g)
+    return g.getvalue()
 
     
 # Apparently, the `register_namespace` method works only with 
@@ -194,6 +194,7 @@ args=vars(parser.parse_args())
 
 shapefile=args["shapefile"]
 csvfile=args["csvfile"]
+outfile=args["outfile"]
 
 
 print 'reading data'
@@ -206,15 +207,24 @@ varnames=f.readline().strip().split(',')
 maxdata=get_max_data(csvfile)
 
 
-save_js(args)
+
+
 
 line=f.readline()
-mapdata, datum, line=read_frame(f,varnames,line)
+#mapdata, datum, line=read_frame(f,varnames,line)
 mapdata=read_simple_frame(f,varnames)
+
 #print mapdata.items()
 sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
 layer = sh.GetLayer()
-save_map (args, mapdata, layer)
-mapdata, datum, line=read_frame(f,varnames, line)
+
+javascript=prep_js(args)
+svg=save_map (args, mapdata, layer)
+
+html=open("map.html").read()
+html=html % locals()
+f=open(outfile+".html",'w')
+f.write(html)
+f.close()
 
         
