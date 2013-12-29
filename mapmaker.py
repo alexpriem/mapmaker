@@ -111,6 +111,28 @@ def read_simple_frame(f, varnames):
     return datadict
 
 
+def save_js (args):
+
+    csvfile=args['csvfile']
+    sep=args['sep']
+    outfile=args['outfile']
+
+    f=open ('data\\'+csvfile)
+    
+    varnames=f.readline().strip().split(',')
+    line_out='var data=[\n'
+    s=''
+    for line in f.readlines():
+        s+=line_out
+        cols=line.strip().split(sep)
+        line_out='['+','.join(cols)+'],\n'
+    line_out=line_out[:-2]
+    s+=line_out
+    g=open(outfile+'.js','w')
+    g.write(s)
+    g.close()
+    f.close()
+
 
 def save_map (args, mapdata, layer):
 
@@ -118,10 +140,8 @@ def save_map (args, mapdata, layer):
     outfile=args['outfile']
    # print mapdata
     fig = pyplot.figure(figsize=(7, 8),dpi=300)    
-    ax = fig.add_subplot(1,1,1)
-    print ax, type(ax)
+    ax = fig.add_subplot(1,1,1)    
     nonecounter=0
-    j=0
     regios=[]
     for feature in layer:
        # print feature.GetFieldCount()        
@@ -129,8 +149,6 @@ def save_map (args, mapdata, layer):
         val=mapdata.get(regio,None)
         if val is None:
             nonecounter+=1
-        else:
-            j+=1
         colorval=rescale_color (val, 0, maxdata)
        # print feature.DumpReadable()
         #if val is not None:
@@ -140,8 +158,6 @@ def save_map (args, mapdata, layer):
         if geom is not None:    
             geometryParcel = loads(geom.ExportToWkb())
             regios=regios+ drawpolygon(geometryParcel , ax, colorval, regio)
-        if j==5:
-            break
     print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
 
     # add classes to DOM-objects
@@ -169,7 +185,7 @@ parser = argparse.ArgumentParser(description='generate calendar from repeating d
 
 parser.add_argument('-s', '--shapefile', dest='shapefile',  help='esri intput shapefile', required=False)
 parser.add_argument('-f', dest='fieldID',  help='shapefile area key variabele', required=False, default=',')                               
-parser.add_argument('-c', '--csv', dest='csv',  help='csv input file name', required=False)
+parser.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name', required=False)
 parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=False, default=',')
 parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', required=False, default='')
 args=vars(parser.parse_args())
@@ -177,7 +193,7 @@ args=vars(parser.parse_args())
 
 
 shapefile=args["shapefile"]
-csvfile=args["csv"]
+csvfile=args["csvfile"]
 
 
 print 'reading data'
@@ -188,6 +204,9 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 f=open ('data\\'+csvfile)
 varnames=f.readline().strip().split(',')
 maxdata=get_max_data(csvfile)
+
+
+save_js(args)
 
 line=f.readline()
 mapdata, datum, line=read_frame(f,varnames,line)
