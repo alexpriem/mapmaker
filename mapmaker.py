@@ -116,19 +116,31 @@ def prep_js (args):
 
     csvfile=args['csvfile']
     sep=args['sep']
-    outfile=args['outfile']    
-
+    outfile=args['outfile']
+    recordinfo=args['recordinfo']
+    recs=recordinfo.strip().split(',')
+    regiocol=recs.index('regio')
+    datacols = [i for i, x in enumerate(recs) if x == "data"]
+    
     f=open ('data\\'+csvfile)
     
-    varnames=f.readline().strip().split(',')
-    line_out=' <script type="text/javascript">\n var data=[\n'
-    s=''
+    varnames=f.readline().strip().split(sep)
+    s='varnames=['
+    s+='"'+varnames[regiocol]+'",'
+    s+=','.join(['"'+varnames[col]+'"' for col in datacols])+'];\n\n'    
+    s+='var data={\n'
+    line_out=''
     for line in f.readlines():
         s+=line_out
-        cols=line.strip().split(sep)
-        line_out='['+','.join(cols)+'],\n'
+        cols=line.strip().split(sep)        
+        line_out=cols[regiocol]+':'
+        line_out+='['+','.join([cols[col] for col in datacols])+']'
+        line_out+=',\n'
+
+        
+            
     line_out=line_out[:-2]
-    s+=line_out+'\n</script>\n'
+    s+=line_out+'};\n'
     f.close()
 
     g=open("js/data.js",'w')
@@ -220,8 +232,8 @@ def save_html (args):
         not_replaceable_js=['js-lib/jquery-2.0.3.min.js',
                         'js-lib/d3.v3.min.js',
                         'js-lib/chroma.min.js',
-                        'js/colormaps.js',
-                        'js/ui.js',
+                        'js/colormaps.js',                        
+                        'js/ui.js',                        
                         'js/data.js']
     jsfrags=html.split('script src="')            
     for jsfrag in jsfrags[1:]:
@@ -270,6 +282,7 @@ parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=
 parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', required=False, default='')
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
+parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, data, regiolabel, dummy, key, keylabel', required=True)
 args=vars(parser.parse_args())
 
 

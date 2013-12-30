@@ -1,5 +1,5 @@
 
-var build_colormap_simple (colors, N) {
+function build_colormap_simple (colors, N) {
 
 	scale=chroma.scale(colors).correctLightness(true);
 	cmap=[];
@@ -12,7 +12,7 @@ var build_colormap_simple (colors, N) {
 }
 
 
-var build_colormap_bezier (colors, N) {
+function build_colormap_bezier (colors, N) {
 
 	scale=chroma.interpolate.bezier(colors).correctLightness(true);
 	cmap=[];
