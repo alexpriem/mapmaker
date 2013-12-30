@@ -130,7 +130,13 @@ def prep_js (args):
     line_out=line_out[:-2]
     s+=line_out+'\n</script>\n'
     f.close()
-    return s
+
+    g=open("js/data.js",'w')
+    g.write(s)
+    g.close()    
+
+
+
 
 
 def save_map (args, mapdata, layer):
@@ -170,9 +176,64 @@ def save_map (args, mapdata, layer):
 #        el.set('cursor', 'pointer')
 #        el.set('onclick', "toggle_hist(this)")
         el.set('class', "outline")
-    g = StringIO()
-    ET.ElementTree(tree).write(g)
-    return g.getvalue()
+    ET.ElementTree(tree).write(outfile+'.svg')    
+
+
+
+
+
+def save_html (args):
+
+    outfile=args["outfile"]    
+    html=open ("map.html",'r').read()    
+    f=open(outfile+'.html','w')
+    
+    cssfrags=html.split('<link href="')
+    
+    f.write(cssfrags[0])
+    cssfiles=[cssfrag.split('"')[0] for cssfrag in cssfrags[1:]]                
+    for cssfrag in cssfrags[1:]:
+        cssfile=cssfrag.split('"')
+        
+       # print cssfile[0]
+        f.write('\n<style>\n')
+        css=open(cssfile[0],"r").read()
+        f.write(css)
+        f.write('\n</style>\n')
+
+    not_replaceable_js=['jquery-2.0.3.min.js',
+                        'd3.v3.min.js',
+                        'chroma.js',
+                        'colormaps.js',
+                        'ui.js',
+                        'data.js']
+    jsfrags=html.split('script src="')            
+    for jsfrag in jsfrags[1:]:
+        jsfile=jsfrag.split('"')
+      #  print jsfile[0]
+        f.write('\n<script type="text/javascript">\n')
+        jsfile=jsfile[0]    # split returns a list, jsfile is in first element
+        if jsfile in not_replaceable_js:
+            f.write(' src="js/'+jsfile+'"> </script>\n')
+        else:
+            js=open(jsfile,'r').read()    
+            f.write(js)
+            f.write('\n</script>\n')
+        
+
+    body=html.split("<body>")
+    body=body[1]
+    svg=open(outfile+'.svg','r').read()                        
+    body=body.replace('<svg> </svg>',svg)
+    f.write("</head>\n")
+    f.write("<body>\n")
+    f.write(body)
+    f.close()
+
+
+
+
+
 
     
 # Apparently, the `register_namespace` method works only with 
@@ -218,13 +279,8 @@ mapdata=read_simple_frame(f,varnames)
 sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
 layer = sh.GetLayer()
 
-javascript=prep_js(args)
-svg=save_map (args, mapdata, layer)
-
-html=open("map.html").read()
-html=html % locals()
-f=open(outfile+".html",'w')
-f.write(html)
-f.close()
+prep_js(args)
+save_map (args, mapdata, layer)
+save_html (args)
 
         
