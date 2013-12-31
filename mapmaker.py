@@ -130,21 +130,36 @@ def prep_js (args):
     s+=','.join(['"'+varnames[col]+'"' for col in datacols])+'];\n\n'    
     s+='var data={\n'
     line_out=''
+    
+    var_min=[None]*len(datacols)
+    var_max=[None]*len(datacols)
     for line in f.readlines():
         s+=line_out
         cols=line.strip().split(sep)        
         line_out=cols[regiocol]+':'
         line_out+='['+','.join([cols[col] for col in datacols])+']'
         line_out+=',\n'
+        for i,col in enumerate(datacols):
+            val=float(cols[col])
+            if var_min[i] is None or val<var_min[i]:
+                var_min[i]=val
+            if var_max[i] is None or val>var_max[i]:
+                var_max[i]=val
 
         
-            
+    var_min.insert(0,0)
+    var_max.insert(0,0)
     line_out=line_out[:-2]
     s+=line_out+'};\n'
     f.close()
 
     g=open("js/data.js",'w')
     g.write(s)
+
+    s=cjson.encode(var_max)
+    g.write('\n\nvar var_min='+s+';\n')
+    s=cjson.encode(var_max)
+    g.write('var var_max='+s+';\n')    
     g.close()    
 
 

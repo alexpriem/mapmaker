@@ -1,7 +1,4 @@
 
-var_min=[0,0];
-var_max=[0,355];
-
 
 function click_regio() {
 
