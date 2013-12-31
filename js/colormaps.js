@@ -14,7 +14,7 @@ function build_colormap_simple (colors, N) {
 
 function build_colormap_bezier (colors, N) {
 
-	scale=chroma.interpolate.bezier(colors).correctLightness(true);
+	scale=chroma.interpolate.bezier(colors);
 	cmap=[];
 	frac=1.0/N;
 	for (i=0; i<N; i++){

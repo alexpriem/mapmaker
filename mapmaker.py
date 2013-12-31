@@ -3,7 +3,7 @@ from shapely.wkb import loads
 from osgeo import ogr, osr
 from matplotlib import pyplot
 from math import log, log10
-import sys, argparse
+import sys, argparse, cjson
 
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
@@ -160,6 +160,7 @@ def save_map (args, mapdata, layer):
     ax = fig.add_subplot(1,1,1)    
     nonecounter=0
     regios=[]
+    regio_ids={}
     for feature in layer:
        # print feature.GetFieldCount()        
         regio=int(feature.GetField(fieldID))        
@@ -174,9 +175,10 @@ def save_map (args, mapdata, layer):
         geom=feature.GetGeometryRef()
         if geom is not None:    
             geometryParcel = loads(geom.ExportToWkb())
-            regios=regios+ drawpolygon(geometryParcel , ax, colorval, regio)
+            ids= drawpolygon(geometryParcel , ax, colorval, regio)    
+            regios=regios+ids;
+            regio_ids[regio]=ids
     print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
-
     # add classes to DOM-objects
     f = StringIO()
     pyplot.savefig(f, format="svg")
@@ -190,6 +192,14 @@ def save_map (args, mapdata, layer):
         el.set('class', "outline")
     ET.ElementTree(tree).write(outfile+'.svg')    
 
+    s=cjson.encode(regio_ids);
+    f=open("js/shape_ids.js",'w')
+    f.write("var shape_ids=");
+    f.write(s);
+    f.write(';\n');
+    f.close()
+
+    
 
 
 
@@ -234,7 +244,8 @@ def save_html (args):
                         'js-lib/chroma.min.js',
                         'js/colormaps.js',                        
                         'js/ui.js',                        
-                        'js/data.js']
+                        'js/data.js',
+                        'js/shape_ids.js']
     jsfrags=html.split('script src="')            
     for jsfrag in jsfrags[1:]:
         jsfile=jsfrag.split('"')[0]
@@ -260,7 +271,8 @@ def save_html (args):
     f.write("<body>\n")
     f.write(body)
     f.close()
-
+    
+    
 
 
 
