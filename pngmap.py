@@ -131,11 +131,8 @@ def save_map (args, mapdata, layer):
     movie_txt=args['label']
     movie_x=int(args['label_x'])
     movie_y=int(args['label_y'])
-   # print movie_x, movie_y, movie_txt
     pyplot.text (movie_x,movie_y,movie_txt)
-   # ax.xaxis.set_visible(False)
-   # ax.yaxis.set_visible(False)
- #   ax.axis('off')
+    ax.axis('off')
     
 
     nonecounter=0
