@@ -5,9 +5,8 @@ from matplotlib import pyplot
 from math import log, log10
 from pylab import axes
 from pylab import arange, randn, convolve, exp, plot
-import argparse, sys, datetime
+import argparse, sys, datetime, math
 import matplotlib
-
 
 
 
@@ -72,8 +71,7 @@ def rescale_color (val, minval, maxval):
 def get_max_data(mapdata):
 
     v=list(mapdata.values())  
-    maxval=max(v)
-    print maxval
+    maxval=max(v)    
     return maxval
 
 
@@ -85,6 +83,7 @@ def read_simple_frame(args):
     recordinfo=args['recordinfo']
     f=open (csvfile)
     f.readline()
+    absmax=None
     
     recs=recordinfo.strip().split(',')
     regiocol=recs.index('regio')
@@ -97,6 +96,8 @@ def read_simple_frame(args):
     for line in f.readlines():        
         cols=line.strip().split(',')
         val=int(cols[datacol])
+        if val>absmax:
+            absmax=val
         if datecol is not None:
             date=cols[datecol]
             prev_val=ts_dict.get(date,0)        # bouw totaal op            
@@ -108,7 +109,7 @@ def read_simple_frame(args):
         datadict[regio]=prev_val+val
         if len(cols)<=1:
             return datadict
-    return datadict, ts_dict
+    return datadict, ts_dict, absmax
 
 
 
@@ -133,15 +134,12 @@ def save_map (args, mapdata, ts, layer):
     m=int(date[4:6])
     d=int(date[6:8])
     dt=datetime.date(y,m,d)
-    movie_txt=dt.strftime('%d %b %Y')
+    movie_txt=dt.strftime('%d %b %Y')    
     
     movie_x=float(args['label_x'])
     movie_y=float(args['label_y'])
-
-    #pyplot.text (movie_x,movie_y,title)
-    #pyplot.text (movie_x,movie_y,movie_txt)
     fig.text (movie_x,movie_y,movie_txt)
-
+    fig.text (0.5-len(title)*0.01,0.95,title)
     ax.axis('off')
 
     #colormap toevoegen
@@ -158,20 +156,40 @@ def save_map (args, mapdata, ts, layer):
             geometryParcel = loads(geom.ExportToWkb())
             drawpolygon(geometryParcel , ax, colorval, regio)
            # break
-    print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
+   
 
+# colorbar
     ax1 = axes([0.85, 0.60, 0.05, 0.20], axisbg='y')
     
     colorsteps=20
     colorlist=[]
+    logstep=math.log10(maxdata)/(colorsteps*1.0)
     for i in range (0,colorsteps):
-        val=(1.0*maxdata)/colorsteps*i        
+        val=pow(10,i*logstep)    
         colorlist.append(rescale_color (val,0,maxdata))    
     cmap = colors.ListedColormap(colorlist,'grad',colorsteps)
+    norm = matplotlib.colors.LogNorm(vmin=1, vmax=maxdata)
+
+    if maxdata==1000:
+        levels=[1,5,10,250,1000]
+    if maxdata==5000:
+        levels=[1,5,50,500,5000]
+    if maxdata==10000:
+        levels=[1,10,100,1000,10000]    
+    if maxdata==50000:
+        levels==[1,50,500,5000,50000]    
+    if maxdata==100000:
+        levels==[1,100,1000,10000,100000]    
+    if maxdata==500000:
+        levels==[1,500,5000,50000,500000]    
+
     
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=maxdata)
-    matplotlib.colorbar.ColorbarBase(ax1, cmap=cmap,
+    matplotlib.colorbar.ColorbarBase(ax1,
+                                     cmap=cmap,
                                    norm=norm,
+                                     ticks=levels,
+                                    format='%.0f',
+                                     spacing='proportional',
                                    orientation='vertical')
 
     ax2 = axes([0.1, 0.05, 0.80, 0.15], axisbg='white', frameon=0)
@@ -189,10 +207,14 @@ def save_map (args, mapdata, ts, layer):
     pyplot.plot(t_axis, y_axis, color='blue')
 
     # highlight current date point in ts
+    currentdate=args['dateselection']
     pointx=[dt]
-    pointy=[ts[date]]
+    pointy=[ts[currentdate]]
     pyplot.plot(pointx, pointy, color='red', marker='o',fillstyle='full', markersize=5)
 
+    if args['movie']==True:
+        outfile+='_'+currentdate
+    print 'save:',outfile, maxdata
     pyplot.savefig(outfile+'.png')
     pyplot.close()
     
@@ -209,6 +231,7 @@ parser.add_argument('-label_x', dest='label_x',  help='title', required=False, d
 parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
 parser.add_argument('-label', dest='label',  help='title', required=False, default='label')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
+parser.add_argument('-movie', dest='movie',  help='make movie over all dates', required=False, default=False, action='store_true')
 parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: date, regiokey, data, regiolabel, dummy, key, keylabel', required=True)
 parser.add_argument('-date',dest='dateselection',  help='dagselectie',required=False)
 args=vars(parser.parse_args())
@@ -220,14 +243,40 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 
 csvfile=args['csvfile']
 shapefile=args['shapefile']
+movie=args['movie']
 f=open (csvfile)
 
+def niceround(val):
+    upper_lim=[0,5,10,50,100,500,1000,5000,10000,50000,100000,500000,1000000]
+    prev=upper_lim[0]
+    for v in upper_lim[1:]:
+       # print v, prev
+        if val>=prev and val<v:
+            return v
+        prev=v
+        
+    return None
 
 
-mapdata,ts_data=read_simple_frame(args)
 
-maxdata=get_max_data(mapdata)
-j=1
+mapdata,ts_data, absmax=read_simple_frame(args)
+print absmax
+absmax=niceround(absmax)
+print absmax
+if movie:
+    maxdata=absmax
+    for date in sorted(ts_data.keys()):        
+        args['dateselection']=date
+        mapdata,ts_data, dummy=read_simple_frame(args)
+        
+        sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
+        layer = sh.GetLayer()
+        save_map (args, mapdata, ts_data, layer)
+    sys.exit(0)
+
+        
+maxdata=niceround(get_max_data(mapdata))
+
 sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
 layer = sh.GetLayer()
 save_map (args, mapdata, ts_data, layer)
