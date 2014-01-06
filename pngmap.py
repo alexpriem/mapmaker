@@ -3,7 +3,10 @@ from shapely.wkb import loads
 from osgeo import ogr, osr
 from matplotlib import pyplot
 from math import log, log10
-import argparse, sys
+from pylab import axes
+from pylab import arange, randn, convolve, exp, plot
+import argparse, sys, datetime
+import matplotlib
 
 
 
@@ -66,39 +69,18 @@ def rescale_color (val, minval, maxval):
     
     
 
-def get_max_data(filename):
+def get_max_data(mapdata):
 
-    f=open(filename)
-    f.readline()
-    cols=f.readline().strip().split(',')
-    maxdata=int(cols[-1])
-    for line in f.readlines():
-        cols=line.strip().split(',')
-        val=int(cols[-1])
-        if val>maxdata:
-            maxdata=val
-    return maxdata
+    v=list(mapdata.values())  
+    maxval=max(v)
+    print maxval
+    return maxval
 
-def read_frame(f,varnames, prevline=None):
-    
-    datadict={}
-    
-    cols=prevline.strip().split(',')
-    prevcol=None
-    while prevcol is None or prevcol==cols[0]:        
-        prevcol=cols[0]
-        datadict[cols[1]]=int(cols[-1])
-        line=f.readline()
-        cols=line.strip().split(',')      
-        if len(cols)<=1:
-            return None, None, None
-  #  print datadict.items()
-    return datadict, prevcol, line
 
 
 def read_simple_frame(args):
     datadict={}
-
+    ts_dict={}
     csvfile=args['csvfile']
     recordinfo=args['recordinfo']
     f=open (csvfile)
@@ -107,34 +89,62 @@ def read_simple_frame(args):
     recs=recordinfo.strip().split(',')
     regiocol=recs.index('regio')
     datacol=recs.index('data')
+    datecol=None
+    if 'date' in recs:
+        datecol=recs.index('date')
+    datesel=args.get('dateselection',None)    
     
-    for line in f.readlines():
+    for line in f.readlines():        
         cols=line.strip().split(',')
-        datadict[int(cols[regiocol])]=int(cols[datacol])
+        val=int(cols[datacol])
+        if datecol is not None:
+            date=cols[datecol]
+            prev_val=ts_dict.get(date,0)        # bouw totaal op            
+            ts_dict[date]=prev_val+val
+            if cols[datecol]!=datesel:                
+                continue
+        regio=int(cols[regiocol])          
+        prev_val=datadict.get(regio,0)        # bouw totaal op 
+        datadict[regio]=prev_val+val
         if len(cols)<=1:
             return datadict
-    return datadict
+    return datadict, ts_dict
 
 
 
 
 
-def save_map (args, mapdata, layer):
+def save_map (args, mapdata, ts, layer):
    # print mapdata
+    import matplotlib.colors as colors
 
     fieldID=args['fieldID']
     outfile=args['outfile']    
     fig = pyplot.figure(figsize=(7, 8),dpi=300)
-    ax = fig.add_subplot(111)
+    
+    
+    #ax = fig.add_subplot(111)
+    ax = axes([0.05, 0.2, 0.80, 0.80], axisbg='y')
+    
     title=args["title"]
     pyplot.title(title)
-    movie_txt=args['label']
-    movie_x=int(args['label_x'])
-    movie_y=int(args['label_y'])
-    pyplot.text (movie_x,movie_y,movie_txt)
-    ax.axis('off')
+    date=args['dateselection']
+    y=int(date[:4])
+    m=int(date[4:6])
+    d=int(date[6:8])
+    dt=datetime.date(y,m,d)
+    movie_txt=dt.strftime('%d %b %Y')
     
+    movie_x=float(args['label_x'])
+    movie_y=float(args['label_y'])
 
+    #pyplot.text (movie_x,movie_y,title)
+    #pyplot.text (movie_x,movie_y,movie_txt)
+    fig.text (movie_x,movie_y,movie_txt)
+
+    ax.axis('off')
+
+    #colormap toevoegen
     nonecounter=0
     for feature in layer:
         regio=int(feature.GetField(fieldID))     
@@ -146,8 +156,43 @@ def save_map (args, mapdata, layer):
         geom=feature.GetGeometryRef()
         if geom is not None:    
             geometryParcel = loads(geom.ExportToWkb())
-            drawpolygon(geometryParcel , ax, colorval, regio)    
+            drawpolygon(geometryParcel , ax, colorval, regio)
+           # break
     print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
+
+    ax1 = axes([0.85, 0.60, 0.05, 0.20], axisbg='y')
+    
+    colorsteps=20
+    colorlist=[]
+    for i in range (0,colorsteps):
+        val=(1.0*maxdata)/colorsteps*i        
+        colorlist.append(rescale_color (val,0,maxdata))    
+    cmap = colors.ListedColormap(colorlist,'grad',colorsteps)
+    
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=maxdata)
+    matplotlib.colorbar.ColorbarBase(ax1, cmap=cmap,
+                                   norm=norm,
+                                   orientation='vertical')
+
+    ax2 = axes([0.1, 0.05, 0.80, 0.15], axisbg='white', frameon=0)
+#http://matplotlib.org/users/recipes.html     voor datess
+
+    t_axis=[]
+    y_axis=[]
+    for date in sorted(ts.iterkeys()):
+        y=int(date[:4])
+        m=int(date[4:6])
+        d=int(date[6:8])
+        t_axis.append(datetime.date(y,m,d))
+        y_axis.append(ts[date])
+    pyplot.locator_params(axis = 'y', nbins = 4)
+    pyplot.plot(t_axis, y_axis, color='blue')
+
+    # highlight current date point in ts
+    pointx=[dt]
+    pointy=[ts[date]]
+    pyplot.plot(pointx, pointy, color='red', marker='o',fillstyle='full', markersize=5)
+
     pyplot.savefig(outfile+'.png')
     pyplot.close()
     
@@ -160,11 +205,12 @@ parser.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file nam
 parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=False, default=',')
 parser.add_argument('-o', dest='outfile',  help='output basename for pngs', required=False, default='')
 parser.add_argument('-title', dest='title',  help='title', required=False, default='')
-parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=220000)
-parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=630000)
+parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=0.1)
+parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
 parser.add_argument('-label', dest='label',  help='title', required=False, default='label')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
-parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, data, regiolabel, dummy, key, keylabel', required=True)
+parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: date, regiokey, data, regiolabel, dummy, key, keylabel', required=True)
+parser.add_argument('-date',dest='dateselection',  help='dagselectie',required=False)
 args=vars(parser.parse_args())
 
 print 'reading data'
@@ -175,12 +221,16 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 csvfile=args['csvfile']
 shapefile=args['shapefile']
 f=open (csvfile)
-maxdata=get_max_data(csvfile)
 
-mapdata=read_simple_frame(args)
+
+
+mapdata,ts_data=read_simple_frame(args)
+
+maxdata=get_max_data(mapdata)
 j=1
 sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
 layer = sh.GetLayer()
-save_map (args, mapdata, layer)
+save_map (args, mapdata, ts_data, layer)
 
         
+
