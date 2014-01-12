@@ -269,7 +269,7 @@ if movie:
         args['dateselection']=date
         mapdata,ts_data, dummy=read_simple_frame(args)
         
-        sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
+        sh = ogr.Open(shapefile)
         layer = sh.GetLayer()
         save_map (args, mapdata, ts_data, layer)
     sys.exit(0)
@@ -277,7 +277,7 @@ if movie:
         
 maxdata=niceround(get_max_data(mapdata))
 
-sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
+sh = ogr.Open(shapefile)
 layer = sh.GetLayer()
 save_map (args, mapdata, ts_data, layer)
 

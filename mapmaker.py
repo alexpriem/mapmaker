@@ -72,7 +72,7 @@ def rescale_color (val, minval, maxval):
 
 def get_max_data(filename):
 
-    f=open("data\\"+filename)
+    f=open(filename)
     f.readline()
     cols=f.readline().strip().split(',')
     maxdata=int(cols[-1])
@@ -122,7 +122,7 @@ def prep_js (args):
     regiocol=recs.index('regio')
     datacols = [i for i, x in enumerate(recs) if x == "data"]
     
-    f=open ('data\\'+csvfile)
+    f=open (csvfile)
     
     varnames=f.readline().strip().split(sep)
     s='varnames=['
@@ -324,7 +324,7 @@ print 'reading data'
 driver = ogr.GetDriverByName('ESRI Shapefile')
 
 
-f=open ('data\\'+csvfile)
+f=open (csvfile)
 varnames=f.readline().strip().split(',')
 maxdata=get_max_data(csvfile)
 
@@ -337,7 +337,7 @@ line=f.readline()
 mapdata=read_simple_frame(f,varnames)
 
 #print mapdata.items()
-sh = ogr.Open("f:\\data\\maps\\shapefiles\\"+shapefile)
+sh = ogr.Open(shapefile)
 layer = sh.GetLayer()
 
 prep_js(args)
