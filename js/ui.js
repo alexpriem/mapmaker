@@ -14,13 +14,21 @@ var tmaxval=0;
 var use_regiomin=true;
 var color=[];
 var canvas;
+var chart;
+var chart_width=0;
+var chart_height=0;
 
 var xScale=d3.time.scale();
 var yScale=d3.scale.linear();
 
+var chart_xpos=125;
+var chart_ypos=100;
+
 ts_width=800;
 ts_height=200;
 
+var MonthName = [ "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December" ];
 
 function click_date () {
 	
@@ -172,6 +180,23 @@ function update_choropleth () {
 	} /* for records */
 
 
+	var d=datesel_asdate;
+	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
+
+
+	$('#chartlabel').remove();
+	chart=d3.select("#chart_svg");
+	chart.append("text")      // text label for the x axis
+		.attr("id","chartlabel")
+  		.attr("class","label")
+        .attr("x", chart_xpos )
+        .attr("y", chart_ypos )
+        .style("text-anchor", "middle")
+        .attr("font-family", "sans-serif")
+  		.attr("font-size", "16px")
+  		.attr("font-weight", "bold")
+        .text(datelabel);
+    
 }
 
 
@@ -343,6 +368,21 @@ function setup_vars () {
 function init_svg(){
 	console.log('init_svg');
 	$('.outline').on('click',click_regio);
+
+	var svg=$("#chart").children()[0];
+	$(svg).attr('id','chart_svg');
+	
+	w=svg.getAttributeNS(null,'width');
+	chart_width=w.slice(0,w.length-2);
+	h=svg.getAttributeNS(null,'height');
+	chart_height=h.slice(0,h.length-2);
+
+	
+	$('#patch_3').remove();
+    $('#patch_4').remove();
+    $('#patch_5').remove();
+    $('#patch_6').remove();
+	
 
 	setup_vars();	
 	update_var_info();
