@@ -1,0 +1,39 @@
+
+
+
+.xaxis line,
+.xaxis path,
+.yaxis line,
+.yaxis path
+{
+	fill:none;
+	stroke: black;
+	shape-rendering: crispEdges;
+}
+
+
+.grid line {
+	fill:none;
+	stroke: #ccc;
+	shape-rendering: crispEdges;	
+}
+
+.gridx  {
+stroke-width:1;
+fill none;
+}
+
+.yaxis text,
+.xaxis text
+{
+	font-family:sans-serif;
+	font-size: 11px;
+}
+
+.label {
+	font-family:sans-serif;
+	font-weight:bold;
+	font-size: 13px;	
+}
+
+
