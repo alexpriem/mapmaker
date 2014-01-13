@@ -19,17 +19,19 @@ def drawpolygon(p,graph,colorval,regio_id):
     # (multipolygons get
     # dom-id format:  r%regioid_%counter
     # 
-    bordercolor=(80/255.0,80/255.0,80/255.0)
+    bordercolor=(120/255.0,120/255.0,120/255.0)
     borderwidth=0.5
     
     if not(hasattr(p,'geoms')):            
         xList,yList = p.exterior.xy
         h=graph.fill(xList,yList, color=colorval)
-        graph.plot(xList,yList, 
+        l=graph.plot(xList,yList, 
                    color=bordercolor,
                    linewidth=borderwidth)
         for il, element in enumerate(h):
-            element.set_gid ("r%d_1" % regio_id)                        
+            element.set_gid ("r%d_1" % regio_id)
+        for il, element in enumerate(l):
+            element.set_gid ("l%d_1" % regio_id )
         return ["r%d_1" % regio_id]
     else:
         j=1
@@ -37,12 +39,15 @@ def drawpolygon(p,graph,colorval,regio_id):
         for poly in p:
             xList,yList = poly.exterior.xy
             h=graph.fill(xList,yList,color=colorval)
-            graph.plot(xList,yList,
+            l=graph.plot(xList,yList,
                         color=bordercolor,
                         linewidth=borderwidth)            
             for il, element in enumerate(h):
-                element.set_gid ("r%d_%d" % (regio_id,j) )   # polylines gaan niet goed            
-            regs.append("r%d_%d" % (regio_id, j))
+                element.set_gid ("r%d_%d" % (regio_id,j) )   # polylines gaan niet goed
+            
+            for il, element in enumerate(l):
+                element.set_gid ("l%d_%d" % (regio_id,j) )                
+            regs.append("r%d_%d" % (regio_id, j))                
             j+=1            
         return regs
 
@@ -194,15 +199,20 @@ def save_map (args, mapdata, layer):
 
     fieldID=args['fieldID']
     outfile=args['outfile']
+    labelID=args['labelID']
    # print mapdata
     fig = pyplot.figure(figsize=(7, 8),dpi=300)    
     ax = fig.add_subplot(1,1,1)    
     nonecounter=0
     regios=[]
     regio_ids={}
+    labels={}
     for feature in layer:
        # print feature.GetFieldCount()        
-        regio=int(feature.GetField(fieldID))        
+        regio=int(feature.GetField(fieldID))
+        if labelID is not None:
+            label=feature.GetField(labelID)
+            labels[regio]=label
         val=mapdata.get(regio,None)
         if val is None:
             nonecounter+=1
@@ -224,13 +234,19 @@ def save_map (args, mapdata, layer):
     tree, xmlid = ET.XMLID(f.getvalue())    
     
     
-    for r in regios:        
+    for r in regios:            
         el = xmlid[r]  # lookup regio_id  in xml
 #        el.set('cursor', 'pointer')
 #        el.set('onclick', "toggle_hist(this)")
         el.set('class', "outline")
+        # lookup border around regions
+        line='l'+r[1:]    
+        el = xmlid[line]  # lookup regio_id  in xml        
+        el.set('class', "border")
+
     ET.ElementTree(tree).write(outfile+'.svg')    
 
+    
     s=json.dumps(regio_ids);
     f=open("js/shape_ids.js",'w')
     f.write("var shape_ids=");
@@ -238,6 +254,15 @@ def save_map (args, mapdata, layer):
     f.write(';\n');
     f.close()
 
+    s='{}'
+    if labelID is not None:
+        s=json.dumps(labels);
+    f=open("js/labels.js",'w')
+    f.write("var labels=");
+    f.write(s);
+    f.write(';\n');
+    f.close()
+    
     
 
 
@@ -282,8 +307,9 @@ def save_html (args):
                         'js-lib/d3.v3.min.js',
                         'js-lib/chroma.min.js',
                         'js/colormaps.js',                        
-                        'js/ui.js',                        
+                        'js/ui.js',
                         'js/data.js',
+                        'js/labels.js',
                         'js/shape_ids.js']
     jsfrags=html.split('script src="')            
     for jsfrag in jsfrags[1:]:
@@ -294,7 +320,7 @@ def save_html (args):
             if verbose:
                 print jsfile,'skipped'
         else:
-            f.write('\n<script type="text/javascript>"\n')        
+            f.write('\n<script type="text/javascript">\n')        
             js=open(jsfile,'r').read()    
             f.write(js)
             f.write('\n</script>\n')
@@ -326,9 +352,10 @@ ET.register_namespace("","http://www.w3.org/2000/svg")
 
 parser = argparse.ArgumentParser(description='generate calendar from repeating data')
 
-parser.add_argument('-s', '--shapefile', dest='shapefile',  help='esri intput shapefile', required=False)
-parser.add_argument('-f', dest='fieldID',  help='shapefile area key variabele', required=False, default=',')                               
-parser.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name', required=False)
+parser.add_argument('-s', '--shapefile', dest='shapefile',  help='esri intput shapefile', required=True)
+parser.add_argument('-f', dest='fieldID',  help='shapefile area key variabele', required=True, default=None)
+parser.add_argument('-l', dest='labelID',  help='shapefile area label variabele', required=False, default=None)
+parser.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name', required=True)
 parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=False, default=',')
 parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', required=False, default='')
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')

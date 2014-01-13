@@ -21,14 +21,27 @@ var chart_height=0;
 var xScale=d3.time.scale();
 var yScale=d3.scale.linear();
 
-var chart_xpos=125;
+var chart_xpos=125;  // label position
 var chart_ypos=100;
+
+var ts_xpos=400;  // label position
+var ts_ypos=10;
+
 
 ts_width=800;
 ts_height=200;
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December" ];
+
+
+function color_transform (val){
+
+	if (val==0) return 0;
+
+	return Math.log(val);
+}
+
 
 function click_date () {
 	
@@ -63,10 +76,10 @@ function update_var_info ()  {
 	varidx=varnames.indexOf(varsel);
 	minval=var_min[varidx];
 	tminval=minval;
-	if (minval!=0) tminval=Math.log(minval);	
+	if (minval!=0) tminval=color_transform(minval);	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.
 	tmaxval=minval;
-	if (maxval!=0) tmaxval=Math.log(maxval);
+	if (maxval!=0) tmaxval=color_transform(maxval);
 }
 
 function change_var () {
@@ -132,9 +145,11 @@ function prep_data () {
 }
 
 
+
+
 function update_choropleth () {
 
-	var records, color, s;
+	var records, color, colorstring;
 
 
 	update_var_info();   // 
@@ -145,37 +160,33 @@ function update_choropleth () {
 		if (row[0]==datesel) {						
 			var regio=row[1];			
 			val=row[varidx];			
-		//	console.log(regio, val);
-			if (val!=0){
-				val=Math.log(val);
+		//	console.log(regio, val);			
+			
+				val=color_transform(val);
 		//		console.log(val);
-				colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));
-				
+				colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));				
 				//console.log(minval, maxval, colorindex);
-				color=colormap[colorindex];
-				
-				s="rgb("+color[0]+","+color[1]+","+color[2]+")";
+				color=colormap[colorindex];				
+				colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 				//console.log('#r'+key+'_1',s);
-				el_ids=shape_ids[regio];
-				
+				el_ids=shape_ids[regio];				
 				if (typeof(el_ids)!="undefined") {
-					
+
 					for (i=0; i<el_ids.length; i++) {
 						el_id='#'+el_ids[i];										
 						el=$(el_id);
 						c=$(el).children();						
 						 for (j=0; j<c.length; j++){
 							c_j=c[j];
-							$(c_j).css('fill',s);
-							$(c_j).css('color',s);
+							$(c_j).css('fill',colorstring);
+							$(c_j).css('color',colorstring);
 							}	// for */
 						}		// for  
 					} // if typeof  
 					else {
 						console.log("undefined regio:", regio);
 					} 
-						
-			} /* if val!=0 */
+									
 		} /* if row=datesel */
 	} /* for records */
 
@@ -252,6 +263,7 @@ function update_ts () {
 	var yAxis=d3.svg.axis();
     yAxis.scale(yScale)
     	.orient("left")   
+    	.ticks(5)
     	.tickFormat(function(d) {
     			if ((d/1000)>=1) { d=d/1000+"k"; }
     			return d;
@@ -261,7 +273,7 @@ function update_ts () {
 	var xGrid=d3.svg.axis();
     xGrid.scale(xScale)
     	.orient("bottom")
-    	.tickSize(-0.7*ts_height,0,0)
+    	.tickSize(-0.5*ts_height,0,0)
     	.tickFormat(function(d) {
     			return "";
 
@@ -269,7 +281,7 @@ function update_ts () {
     		
  	var yGrid=d3.svg.axis();
     yGrid.scale(yScale)
-    	.orient("left")
+    	.orient("left")    	
     	.tickSize(-ts_width,0,0)
     	.tickFormat(function(d) {
     			return "";
@@ -300,18 +312,20 @@ function update_ts () {
     canvas.append("text")
     	.attr("class", "label")
     	.attr("y", ts_height-10)
-    	.attr("x", ts_width/2)
+    	.attr("x", ts_width/2)    	
     	.text("datum");
 
     canvas.append("text")
     	.attr("class", "label")
-    	.attr("y", ts_height/2)
-    	.attr("x", 10)
-    	.text("label");
+    	.attr("x", 0)
+    	.attr("y", 0)    	
+    	.attr("transform", "translate(12,100)rotate(270)")    
+    	.text("events");
 
 	
 
 var line=d3.svg.line()
+	.interpolate("monotone") 
 	.x(function(d,i)  { return xScale(xdata[i]); })
 	.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
 
@@ -328,15 +342,31 @@ var line=d3.svg.line()
 		canvas.append("svg:path")
 			//.attr("id","l_"+day+"_"+month)
 			.attr("class","dayl")
-			.attr("d", line(ydata))
+			.attr("d", line(ydata))		
 			.style("stroke","blue")
+			.style("stroke-linecap","round")
 			.style("fill","none")
-			.style("stroke-width","2")
-			.style("opacity","0.9");
+			.style("stroke-width","2");
+			
 			
 	}
 
-  d3.select("#svg_ts").on('click', click_date);
+ 	d3.select("#svg_ts").on('click', click_date);
+ 	$('#ts_label').remove();
+
+ 	var ts_label=labels[regiosel];
+
+ 	console.log('labelpos:',ts_xpos, ts_ypos);
+	canvas.append("text")      // text label for the x axis
+		.attr("id","ts_label")
+  		.attr("class","label")
+        .attr("x", ts_xpos )
+        .attr("y", ts_ypos )
+        .style("text-anchor", "middle")
+        .attr("font-family", "sans-serif")
+  		.attr("font-size", "16px")
+  		.attr("font-weight", "bold")
+        .text(ts_label);
 
   update_ts_sel();
 

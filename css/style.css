@@ -36,4 +36,7 @@ fill none;
 	font-size: 13px;	
 }
 
-
+.outline {
+stroke-width: 1;
+stroke: #660000;
+}
