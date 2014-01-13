@@ -111,11 +111,18 @@ function prep_data () {
 	var records=data.length;
 	var row, ts,regio;
 	
-
+	prevd=0;
+	dates=[];
 	for (i=0; i<records; i++) {
 		row=data[i];
 		d=row[0];
 		regio=row[1];
+
+		if (d!=prevd)  {
+			dates.push(d);
+			prevd=d;			
+		}
+
 
 		year=parseInt(d/10000.0);
 		month=parseInt((d-year*10000)/100);
@@ -393,7 +400,91 @@ function setup_vars () {
 	$('.varname').on('click',change_var);
 }
 
+function movie_begin () {
+	datesel=dates[0];
+	datesel_asdate=convert_date(datesel);
+	console.log ("date set to:",datesel);
+	update_choropleth();
+	update_ts_sel();
+	return false;
+}
 
+function movie_last () {
+	datesel=dates[dates.length-1];
+	datesel_asdate=convert_date(datesel);
+	console.log ("date set to:",datesel);
+	update_choropleth();
+	update_ts_sel();
+	return false;
+}
+
+function movie_next () {
+	var nextdate=dates.indexOf(datesel)+1;
+	if (nextdate>=dates.length)
+		nextdate=dates.length;
+	datesel=dates[nextdate];
+	datesel_asdate=convert_date(datesel);
+	console.log ("date set to:",datesel);
+	update_choropleth();
+	update_ts_sel();
+	return false;
+}
+
+function movie_prev () {
+	var nextdate=dates.indexOf(datesel)-1;
+	if (nextdate<0)
+		nextdate=0;	
+	datesel=dates[nextdate];
+	datesel_asdate=convert_date(datesel);
+	console.log ("date set to:",datesel);
+	update_choropleth();
+	update_ts_sel();
+	return false;
+}
+
+function movie_start () {
+	console.log("start player");
+	dateindex=dates.indexOf(datesel);
+
+	stop_player=false;
+	setTimeout (movie_nextframe,200);
+	return false;
+}
+
+function movie_nextframe() {
+
+	console.log('nextframe:',dateindex,stop_player);
+	if (stop_player) return;
+	dateindex+=1;
+	if (dateindex>=dates.length){
+		console.log('ended');
+		stop_player=true;
+		return;
+	}
+	datesel=dates[dateindex];	
+	datesel_asdate=convert_date(datesel);
+	update_choropleth();
+	update_ts_sel();
+	setTimeout (movie_nextframe,200);		
+	return false;	
+}
+
+
+function movie_pause () {
+	stop_player=true;
+	return false;
+}
+
+	
+
+function init_movie_ui () {
+	$('#m_begin').on('click',movie_begin);
+	$('#m_prev').on('click',movie_prev);
+	$('#m_start').on('click',movie_start);
+	$('#m_pause').on('click',movie_pause);
+	$('#m_next').on('click',movie_next);
+	$('#m_last').on('click',movie_last);
+}
 
 function init_svg(){
 	console.log('init_svg');
@@ -416,6 +507,7 @@ function init_svg(){
 
 	setup_vars();	
 	update_var_info();
+	init_movie_ui();
 	colormap=colormap_hot(256);	
 	//console.log(colormap);
 	console.log(minval,maxval,varsel);
