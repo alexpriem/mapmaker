@@ -3,7 +3,7 @@ from shapely.wkb import loads
 from osgeo import ogr, osr
 from matplotlib import pyplot
 from math import log, log10
-import sys, argparse, cjson
+import sys, argparse, json
 
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
@@ -120,23 +120,40 @@ def prep_js (args):
     recordinfo=args['recordinfo']
     recs=recordinfo.strip().split(',')
     regiocol=recs.index('regio')
+    datecol=None
+    if 'date' in recs:
+        datecol=recs.index('date')
     datacols = [i for i, x in enumerate(recs) if x == "data"]
     
     f=open (csvfile)
-    
+
+    g=open("js/data.js",'w')    
+
     varnames=f.readline().strip().split(sep)
     s='varnames=['
     s+='"'+varnames[regiocol]+'",'
     s+=','.join(['"'+varnames[col]+'"' for col in datacols])+'];\n\n'    
     s+='var data={\n'
     line_out=''
+    g.write(s)
+
     
+    # build js-object: [date], regio:{data1,data2, data3}],  ...
+    #
     var_min=[None]*len(datacols)
     var_max=[None]*len(datacols)
-    for line in f.readlines():
-        s+=line_out
-        cols=line.strip().split(sep)        
-        line_out=cols[regiocol]+':'
+    j=0
+    lineout='\n'
+    for line in f.readlines():        
+        if (round(j/100))*100==j:
+            print j
+        j+=1
+        g.write(lineout)
+        cols=line.strip().split(sep)
+        lineout=''
+        if (datecol is not None):            
+            line_out+=cols[datecol]+','
+        line_out+=cols[regiocol]+':'
         line_out+='['+','.join([cols[col] for col in datacols])+']'
         line_out+=',\n'
         for i,col in enumerate(datacols):
@@ -145,21 +162,17 @@ def prep_js (args):
                 var_min[i]=val
             if var_max[i] is None or val>var_max[i]:
                 var_max[i]=val
-
-        
+            
     var_min.insert(0,0)
     var_max.insert(0,0)
     line_out=line_out[:-2]
-    s+=line_out+'};\n'
+    g.write(line_out+'};\n')
     f.close()
 
-    g=open("js/data.js",'w')
-    g.write(s)
-
-    s=cjson.encode(var_max)
-    g.write('\n\nvar var_min='+s+';\n')
-    s=cjson.encode(var_max)
-    g.write('var var_max='+s+';\n')    
+    s=json.dumps(var_min)    
+    g.write('\n\nvar var_min='+s+'];\n')
+    s=json.dumps(var_max)        
+    g.write('\n\nvar var_max='+s+'];\n')
     g.close()    
 
 
@@ -207,7 +220,7 @@ def save_map (args, mapdata, layer):
         el.set('class', "outline")
     ET.ElementTree(tree).write(outfile+'.svg')    
 
-    s=cjson.encode(regio_ids);
+    s=json.dumps(regio_ids);
     f=open("js/shape_ids.js",'w')
     f.write("var shape_ids=");
     f.write(s);
@@ -310,6 +323,11 @@ parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', 
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
 parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, data, regiolabel, dummy, key, keylabel', required=True)
+parser.add_argument('-title', dest='title',  help='title', required=False, default='')
+parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=0.1)
+parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
+parser.add_argument('-label', dest='label',  help='title', required=False, default='label')
+
 args=vars(parser.parse_args())
 
 
@@ -319,7 +337,7 @@ csvfile=args["csvfile"]
 outfile=args["outfile"]
 fullhtml=args["fullhtml"]
 
-print 'reading data'
+print ''
 
 driver = ogr.GetDriverByName('ESRI Shapefile')
 

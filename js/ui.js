@@ -1,6 +1,8 @@
 var regio_ts={};
+var regio_ts_min={};
+var regio_ts_max={};
 var date2date={};
-var daysel=0;
+var datesel=0;
 var regiosel=0;
 var varsel=varnames[2];
 
@@ -9,11 +11,31 @@ var maxval=0;
 var tminval=0;
 var tmaxval=0;
 
+var use_regiomin=true;
 var color=[];
 var canvas;
 
+var xScale=d3.time.scale();
+var yScale=d3.scale.linear();
+
 ts_width=800;
 ts_height=200;
+
+
+function click_date () {
+	
+	
+	xpos=d3.mouse(this)[0];
+
+	console.log(xpos, xScale.invert(xpos));
+	newdate=xScale.invert(xpos);	
+	datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();
+	datesel_asdate=newdate;
+	console.log(datesel, datesel_asdate);
+	update_choropleth();
+	update_ts_sel();
+	return false;
+}
 
 function click_regio() {
 
@@ -23,6 +45,7 @@ function click_regio() {
 	regiosel=r.slice(1);
 	console.log(regiosel);
 	update_ts();
+
 	return false;
 }
 
@@ -51,6 +74,17 @@ function change_var () {
 }
 
 
+function convert_date (d) {
+
+	var year=parseInt(d/10000.0);
+	var month=parseInt((d-year*10000)/100);
+	var day=parseInt(d-year*10000-month*100);	
+	newdate=new Date(year,month-1,day); 
+
+	return newdate;
+}
+	
+
 function prep_data () {
 
 	var records=data.length;
@@ -68,26 +102,24 @@ function prep_data () {
 		ddate= new Date(year,month-1,day); 
 		date2date[d]= ddate;
 
+		val=row[varidx];
 		if (!(regio in regio_ts)) {
-			regio_ts[regio]=[[ddate,row[2]]];
+			regio_ts[regio]=[[ddate,val]];
+			regio_ts_min[regio]=val;
+			regio_ts_max[regio]=val;
 		} else {
-			regio_ts[regio].push([ddate,row[2]]);
+			regio_ts[regio].push([ddate,val]);
+			if (val<regio_ts_min[regio]) regio_ts_min[regio]=val;
+			if (val>regio_ts_max[regio]) regio_ts_max[regio]=val;
 		}
 	}
+	
+	mindate=convert_date(var_min[0]);
+	maxdate=convert_date(var_max[0]);
+	datesel=data[0][0];
+	datesel_asdate=convert_date(datesel);
+	console.log ("prep:",mindate,maxdate);
 
-	min_d=var_min[0];
-	year=parseInt(min_d/10000.0);
-	month=parseInt((min_d-year*10000)/100);
-	day=parseInt(min_d-year*10000-month*100);	
-	mindate=new Date(year,month-1,day); 
-
-	max_d=var_max[0];
-	year=parseInt(max_d/10000.0);
-	month=parseInt((max_d-year*10000)/100);
-	day=parseInt(max_d-year*10000-month*100);	
-	maxdate=new Date(year,month-1,day); 
-
-	daysel=data[0][0];
 	regiosel=data[0][1];
 }
 
@@ -98,11 +130,11 @@ function update_choropleth () {
 
 
 	update_var_info();   // 
-	console.log("day/regio/var",daysel,regiosel,varsel);
+	console.log("day/regio/var",datesel,regiosel,varsel);
 	records=data.length;
 	for (rownr=0; rownr<records; rownr++){	
 		row=data[rownr];
-		if (row[0]==daysel) {						
+		if (row[0]==datesel) {						
 			var regio=row[1];			
 			val=row[varidx];			
 		//	console.log(regio, val);
@@ -136,11 +168,26 @@ function update_choropleth () {
 					} 
 						
 			} /* if val!=0 */
-		} /* if row=daysel */
+		} /* if row=datesel */
 	} /* for records */
 
 
 }
+
+
+
+function update_ts_sel () {
+	$("#ts_line").remove();	
+	canvas.append("line")
+  		.attr("id","ts_line")
+  		.attr("x1",xScale(datesel_asdate))
+  		.attr("x2",xScale(datesel_asdate))
+  		.attr("y1",yScale(miny))
+  		.attr("y2",yScale(maxy))
+  		.attr("stroke-width", 1)
+  		.attr("stroke", 'red');
+
+  	}
 
 
 
@@ -154,14 +201,22 @@ function update_ts () {
             .attr("width", ts_width)
             .attr("height", ts_height);            
 	
-	var xScale=d3.time.scale();
+	
+
+	console.log('update_ts:', regiosel, varsel);	
+
+	if (use_regiomin) {
+		miny=regio_ts_min[regiosel];
+		maxy=regio_ts_max[regiosel]		
+	} else {
+    	miny=minval;
+    	maxy=maxval;
+    }
+
     xScale.domain([mindate,maxdate]);   // time in ms
 	xScale.range([50,ts_width]); 
 
-
-	console.log('update_ts:', regiosel, varsel);
-	var yScale=d3.scale.linear();
-    yScale.domain([maxval, minval]);
+    yScale.domain([maxy,miny]);	
 	yScale.range([50,ts_height-50]); 
 	var line = d3.svg.line();
 
@@ -221,7 +276,7 @@ function update_ts () {
     	.attr("class", "label")
     	.attr("y", ts_height-10)
     	.attr("x", ts_width/2)
-    	.text("tijd (uur)");
+    	.text("datum");
 
     canvas.append("text")
     	.attr("class", "label")
@@ -255,6 +310,10 @@ var line=d3.svg.line()
 			.style("opacity","0.9");
 			
 	}
+
+  d3.select("#svg_ts").on('click', click_date);
+
+  update_ts_sel();
 
 
 }
