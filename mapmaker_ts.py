@@ -236,16 +236,22 @@ def save_map (args, mapdata, layer):
     
     for r in regios:            
         el = xmlid[r]  # lookup regio_id  in xml
-#        el.set('cursor', 'pointer')
-#        el.set('onclick', "toggle_hist(this)")
-        el.set('class', "outline")
+        children=el.findall("*")
+        child=children[0]   # altijd maar een child       
+        child.attrib.pop("clip-path")
+        child.set('class',"outline")
+        child.set('id',r)
+        el.attrib.pop("id")
+        #sys.exit()
+        
+        
+        
         # lookup border around regions
         line='l'+r[1:]    
         el = xmlid[line]  # lookup regio_id  in xml        
         el.set('class', "border")
 
-    ET.ElementTree(tree).write(outfile+'.svg')    
-
+    ET.ElementTree(tree).write(outfile+'.svg')        
     
     s=json.dumps(regio_ids);
     f=open("js/shape_ids.js",'w')

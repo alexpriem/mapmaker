@@ -180,14 +180,9 @@ function update_choropleth () {
 				if (typeof(el_ids)!="undefined") {
 
 					for (i=0; i<el_ids.length; i++) {
-						el_id='#'+el_ids[i];										
-						el=$(el_id);
-						c=$(el).children();						
-						 for (j=0; j<c.length; j++){
-							c_j=c[j];
-							$(c_j).css('fill',colorstring);
-							$(c_j).css('color',colorstring);
-							}	// for */
+						el_id='#'+el_ids[i];						
+						$(el_id).css('fill',colorstring);
+						$(el_id).css('color',colorstring);							
 						}		// for  
 					} // if typeof  
 					else {
@@ -503,7 +498,7 @@ function init_svg(){
     $('#patch_4').remove();
     $('#patch_5').remove();
     $('#patch_6').remove();
-	
+
 
 	setup_vars();	
 	update_var_info();
