@@ -26,7 +26,7 @@ var chart_ypos=100;
 
 var ts_xpos=400;  // label position
 var ts_ypos=10;
-
+var prev_regiocolors={};
 
 ts_width=800;
 ts_height=200;
@@ -58,13 +58,12 @@ function click_date () {
 	return false;
 }
 
-function click_regio() {
+function click_regio(evt) {
 
-	$('#svg_ts').remove();
-	console.log(this.id);	
-	r=this.id.split('_')[0];
+	$('#svg_ts').remove();	
+	r=evt.target.id.split('_')[0];
 	regiosel=r.slice(1);
-	console.log(regiosel);
+	console.log('regio:',regiosel);
 	update_ts();
 
 	return false;
@@ -112,14 +111,20 @@ function prep_data () {
 	var row, ts,regio;
 	
 	prevd=0;
+	start_i=0;
 	dates=[];
+	date_index={};
 	for (i=0; i<records; i++) {
 		row=data[i];
 		d=row[0];
 		regio=row[1];
 
-		if (d!=prevd)  {
+		if (d!=prevd)  {			
 			dates.push(d);
+			if (prevd!=0) {
+				date_index[prevd]={start_row:start_i, eind_row:i-1}
+				start_i=i;
+			}
 			prevd=d;			
 		}
 
@@ -141,6 +146,8 @@ function prep_data () {
 			if (val>regio_ts_max[regio]) regio_ts_max[regio]=val;
 		}
 	}
+
+	date_index[prevd]={startdatum:start_i, einddatum:i-1}
 	
 	mindate=convert_date(var_min[0]);
 	maxdate=convert_date(var_max[0]);
@@ -162,36 +169,44 @@ function update_choropleth () {
 	update_var_info();   // 
 	console.log("day/regio/var",datesel,regiosel,varsel);
 	records=data.length;
-	for (rownr=0; rownr<records; rownr++){	
+	start_row=date_index[datesel].start_row;
+	eind_row=date_index[datesel].eind_row;
+	new_regiocolors={};
+	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=data[rownr];
-		if (row[0]==datesel) {						
-			var regio=row[1];			
-			val=row[varidx];			
-		//	console.log(regio, val);			
-			
-				val=color_transform(val);
-		//		console.log(val);
-				colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));				
+		if (row[0]!=datesel) {
+			console.log("error-regioindex");
+			}
+		var regio=row[1];			
+		val=row[varidx];			
+	//	console.log(regio, val);				
+		prev_val=prev_regiocolors[regio];   // kleur zetten als - nieuwe waarde !=0
+		                                    // oude waarde ongelijk vorige waarde
+		                                    // 
+		if ((val!=0) || ((typeof(prev_val)!="undefined") && (val!=prev_val))) {
+			if (val!=0) {
+				new_regiocolors[regio]=val;
+			}
+			val=color_transform(val);
+		//console.log(val);
+			colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));				
 				//console.log(minval, maxval, colorindex);
-				color=colormap[colorindex];				
-				colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
+			color=colormap[colorindex];				
+			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 				//console.log('#r'+key+'_1',s);
-				el_ids=shape_ids[regio];				
-				if (typeof(el_ids)!="undefined") {
+			el_ids=shape_ids[regio];				
+			if (typeof(el_ids)!="undefined") {
 
-					for (i=0; i<el_ids.length; i++) {
-						el_id='#'+el_ids[i];						
-						$(el_id).css('fill',colorstring);
-						$(el_id).css('color',colorstring);							
-						}		// for  
-					} // if typeof  
-					else {
-						console.log("undefined regio:", regio);
-					} 
-									
-		} /* if row=datesel */
+				for (i=0; i<el_ids.length; i++) {
+					el_id='#'+el_ids[i];						
+					$(el_id).css('fill',colorstring).css('color',colorstring);
+					}		// for  
+				} else {
+					console.log("undefined regio:", regio);
+			} 													
+		}
 	} /* for records */
-
+	prev_regiocolors=new_regiocolors;
 
 	var d=datesel_asdate;
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
@@ -460,7 +475,7 @@ function movie_nextframe() {
 	datesel_asdate=convert_date(datesel);
 	update_choropleth();
 	update_ts_sel();
-	setTimeout (movie_nextframe,200);		
+	setTimeout (movie_nextframe,10);		
 	return false;	
 }
 
@@ -483,7 +498,8 @@ function init_movie_ui () {
 
 function init_svg(){
 	console.log('init_svg');
-	$('.outline').on('click',click_regio);
+	//$('.outline').on('click',click_regio);
+	$('#axes_1').on('click',click_regio);
 
 	var svg=$("#chart").children()[0];
 	$(svg).attr('id','chart_svg');
