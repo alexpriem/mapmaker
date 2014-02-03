@@ -3,7 +3,7 @@ from shapely.wkb import loads
 from osgeo import ogr, osr
 from matplotlib import pyplot
 from math import log, log10
-import sys, argparse, json
+import os, sys, argparse, json,re
 
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
@@ -19,19 +19,21 @@ class mapmaker:
     def __init__(self, args):
         self.args=args
 
-    def draw_areas(self,p,graph,colorval,regio_id):
+    def draw_areas(self,p,graph,color,regio_id):
 
         # returns a list of dom-id's for every polygon drawn
         # (multipolygons get
         # dom-id format:  r%regioid_%counter
         #
-        
+
+        if color is None:
+            color=(1.0,1.0,1.0)
         bordercolor=(120/255.0,120/255.0,120/255.0)
         borderwidth=0.5
         
         if not(hasattr(p,'geoms')):            
             xList,yList = p.exterior.xy
-            h=graph.fill(xList,yList, color=colorval)
+            h=graph.fill(xList,yList, color=color)
             l=graph.plot(xList,yList, 
                        color=bordercolor,
                        linewidth=borderwidth)
@@ -45,7 +47,7 @@ class mapmaker:
             regs=[]
             for poly in p:
                 xList,yList = poly.exterior.xy
-                h=graph.fill(xList,yList,color=colorval)
+                h=graph.fill(xList,yList, color=color)
                 l=graph.plot(xList,yList,
                             color=bordercolor,
                             linewidth=borderwidth)            
@@ -96,7 +98,6 @@ class mapmaker:
 
     def read_files (self):
                
-        csvfile=args["csvfile"]
         outfile=args["outfile"]
         fullhtml=args["fullhtml"]
 
@@ -109,14 +110,6 @@ class mapmaker:
         if self.outline_shapefile is not None:
             self.outline_sh = ogr.Open(self.outline_shapefile)
             self.outline_layer = self.outline_sh.GetLayer()
-
-        f=open (csvfile)
-        varnames=f.readline().strip().split(',')
-        self.maxdata=m.get_max_data(args["csvfile"])
-        line=f.readline()
-        #mapdata, datum, line=read_frame(f,varnames,line)
-        self.mapdata=self.read_simple_frame(f,varnames)
-
 
 
 
@@ -188,15 +181,27 @@ class mapmaker:
     def prep_js (self, args):
 
         csvfile=args['csvfile']
+        csvdir=args['csvdir']
+        
         sep=args['sep']
         outfile=args['outfile']
         recordinfo=args['recordinfo']
         recs=recordinfo.strip().split(',')
-        regiocol=recs.index('regio')
+        
+        regiocol=recs.index('regio')        
+        normcol=None
+        if 'norm' in recs:
+            normcol=recs.index('norm')
         datecol=None
         if 'date' in recs:
             datecol=recs.index('date')
         datacols = [i for i, x in enumerate(recs) if x == "data"]
+
+        if csvdir:
+            csvfiles = [ f for f in os.listdir(csvdir)] # if re.match(r'\w*\.csv', f) and os.path.isfile(csvdir+f) ]
+            
+            csvfile=csvdir+'/'+csvfiles[0]
+            
         
         f=open (csvfile)
 
@@ -234,6 +239,8 @@ class mapmaker:
                     maxdate=date
                 line_out+=date+','            
             line_out+=cols[regiocol]+','
+            if normcol is not None:
+                line_out+=cols[normcol]+','
             line_out+=','.join([cols[col] for col in datacols])
             line_out+='],\n'
             #print line_out
@@ -253,24 +260,38 @@ class mapmaker:
         g.write(line_out+'];\n')
         f.close()
 
+        if csvdir:
+            s=json.dumps(csvfiles)
+            g.write('\n\n var selectie='+s+';\n');
+        var_types=[]
+        if datecol:
+            var_types.append('date')
+        var_types.append('regio')
+        if normcol:
+            var_types.append('norm')
+        var_types=var_types+datacols
+        s=json.dumps(var_types)    
+        g.write('\n\nvar var_types='+s+';\n')
         s=json.dumps(var_min)    
         g.write('\n\nvar var_min='+s+';\n')
         s=json.dumps(var_max)        
         g.write('\n\nvar var_max='+s+';\n')
-        g.close()    
+        g.close()
+
+        
 
 
 
 
 
-    def save_map (self, args, mapdata):
+    def save_map (self, args):
 
         layer=self.area_layer
         fieldID=args['shape_fieldID']
         labelID=args['shape_labelID']
         outfile=args['outfile']
 
-       # print mapdata
+       
         fig = pyplot.figure(figsize=(7, 8),dpi=300)    
         ax = fig.add_subplot(1,1,1)    
         nonecounter=0
@@ -282,19 +303,11 @@ class mapmaker:
             regio=int(feature.GetField(fieldID))
             if labelID is not None:
                 label=feature.GetField(labelID)
-                labels[regio]=label
-            val=mapdata.get(regio,None)
-            if val is None:
-                nonecounter+=1
-            colorval=self.rescale_color (val, 0, self.maxdata)
-           # print feature.DumpReadable()
-            #if val is not None:
-            #    print regio, val, colorval, val/(1.0*maxdata)
-          #  continue
+                labels[regio]=label            
             geom=feature.GetGeometryRef()
             if geom is not None:    
                 geometryParcel = loads(geom.ExportToWkb())
-                ids= self.draw_areas(geometryParcel , ax, colorval, regio)    
+                ids= self.draw_areas(geometryParcel, ax, None, regio)    
                 regios=regios+ids;
                 regio_ids[regio]=ids
         print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
@@ -304,9 +317,7 @@ class mapmaker:
         if self.outline_shapefile is not None:
             fieldID=args['outline_fieldID']
             labelID=args['outline_labelID']
-            outfile=args['outfile']
-            
-           # print mapdata
+            outfile=args['outfile']                
             
             outline_regios=[]
             outline_regio_ids={}
@@ -321,10 +332,6 @@ class mapmaker:
                 val=mapdata.get(regio,None)
                 if val is None:
                     nonecounter+=1                
-               # print feature.DumpReadable()
-                #if val is not None:
-                #    print regio, val, colorval, val/(1.0*maxdata)
-              #  continue
                 geom=feature.GetGeometryRef()
                 if geom is not None:    
                     geometryParcel = loads(geom.ExportToWkb())
@@ -471,12 +478,14 @@ parser.add_argument('-l', '--outlinefile', dest='outline_shapefile',  help='esri
 parser.add_argument('-lf', dest='outline_fieldID',  help='shapefile area key variabele', required=False, default=None)
 parser.add_argument('-ll', dest='outline_labelID',  help='shapefile area label variabele', required=False, default=None)
 
-parser.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name', required=True)
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name')
+group.add_argument('-cd', '--csvdir', dest='csvdir',  help='directory with csv input files')
 parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=False, default=',')
 parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', required=False, default='')
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
-parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, data, regiolabel, dummy, key, keylabel', required=True)
+parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, norm, data, regiolabel, dummy, key, keylabel', required=True)
 parser.add_argument('-title', dest='title',  help='title', required=False, default='')
 parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=0.1)
 parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
@@ -495,7 +504,7 @@ m.read_files()
 #print mapdata.items()
 
 m.prep_js(args)
-m.save_map (args, m.mapdata)
+m.save_map (args)
 m.save_html (args)
 
         
