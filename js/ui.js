@@ -1,7 +1,6 @@
 var regio_ts={};
 var regio_ts_min={};
 var regio_ts_max={};
-var date2date={};
 var datesel=0;
 var regiosel=0;
 var varsel=varnames[2];
@@ -119,7 +118,7 @@ function prep_data () {
 		d=row[0];
 		regio=row[1];
 
-		if (d!=prevd)  {			
+		if (d-prevd!=0)  {			 // stupid javascript unable to compare dates
 			dates.push(d);
 			if (prevd!=0) {
 				date_index[prevd]={start_row:start_i, eind_row:i-1}
@@ -129,19 +128,13 @@ function prep_data () {
 		}
 
 
-		year=parseInt(d/10000.0);
-		month=parseInt((d-year*10000)/100);
-		day=parseInt(d-year*10000-month*100);		
-		ddate= new Date(year,month-1,day); 
-		date2date[d]= ddate;
-
 		val=row[varidx];
 		if (!(regio in regio_ts)) {
-			regio_ts[regio]=[[ddate,val]];
+			regio_ts[regio]=[[d,val]];
 			regio_ts_min[regio]=val;
 			regio_ts_max[regio]=val;
 		} else {
-			regio_ts[regio].push([ddate,val]);
+			regio_ts[regio].push([d,val]);
 			if (val<regio_ts_min[regio]) regio_ts_min[regio]=val;
 			if (val>regio_ts_max[regio]) regio_ts_max[regio]=val;
 		}
@@ -149,11 +142,11 @@ function prep_data () {
 
 	date_index[prevd]={startdatum:start_i, einddatum:i-1}
 	
-	mindate=convert_date(var_min[0]);
-	maxdate=convert_date(var_max[0]);
+	mindate=var_min[0];
+	maxdate=var_max[0];
 	datesel=data[0][0];
-	datesel_asdate=convert_date(datesel);
-	console.log ("prep:",mindate,maxdate);
+	datesel_asdate=datesel; //convert_date(datesel);
+	console.log ("prep:",mindate,maxdate,datesel_asdate);
 
 	regiosel=data[0][1];
 }
@@ -171,6 +164,7 @@ function update_choropleth () {
 	records=data.length;
 	start_row=date_index[datesel].start_row;
 	eind_row=date_index[datesel].eind_row;
+	console.log("start:end",start_row, eind_row);
 	new_regiocolors={};
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=data[rownr];
@@ -209,6 +203,7 @@ function update_choropleth () {
 	prev_regiocolors=new_regiocolors;
 
 	var d=datesel_asdate;
+	console.log(d, typeof(d));
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
 

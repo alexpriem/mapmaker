@@ -7,7 +7,7 @@ import os, sys, argparse, json,re
 
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
-
+import dateutil
 
 
 
@@ -97,7 +97,8 @@ class mapmaker:
 
 
     def read_files (self):
-               
+
+        csvfile=args["csvfile"]               
         outfile=args["outfile"]
         fullhtml=args["fullhtml"]
 
@@ -111,6 +112,12 @@ class mapmaker:
             self.outline_sh = ogr.Open(self.outline_shapefile)
             self.outline_layer = self.outline_sh.GetLayer()
 
+        f=open (csvfile)
+        varnames=f.readline().strip().split(',')
+        self.maxdata=m.get_max_data(args["csvfile"])
+        line=f.readline()
+        #mapdata, datum, line=read_frame(f,varnames,line)
+        self.mapdata=self.read_simple_frame(f,varnames)
 
 
     def rescale_color (self, val, minval, maxval):
@@ -172,7 +179,7 @@ class mapmaker:
 
         for line in f.readlines():
             cols=line.strip().split(',')
-            datadict[int(cols[0])]=int(cols[-1])
+            datadict[cols[0]]=int(cols[-1])
             if len(cols)<=1:
                 return datadict
         return datadict
@@ -224,8 +231,8 @@ class mapmaker:
         #
         var_min=[None]*len(datacols)
         var_max=[None]*len(datacols)
-        mindate=None
-        maxdate=None
+        mindatestr=None
+        maxdatestr=None
         line_out='\n'
         for line in f.readlines():        
             g.write(line_out)
@@ -233,11 +240,16 @@ class mapmaker:
             line_out='['    
             if (datecol is not None):
                 date=cols[datecol]
-                if mindate is None or date<mindate:
-                    mindate=date
-                if maxdate is None or date>maxdate:
-                    maxdate=date
-                line_out+=date+','            
+                d=dateutil.parser.parse(date)
+                if mindatestr is None or d<mindate:
+                    mindate=d
+                    mindatestr=date
+                if maxdatestr is None or d>maxdate:
+                    maxdate=d
+                    maxdatestr=date
+                #line_out+=date+","
+                
+                line_out+="new Date('"+date.replace(' ','T')+"'),"
             line_out+=cols[regiocol]+','
             if normcol is not None:
                 line_out+=cols[normcol]+','
@@ -254,8 +266,8 @@ class mapmaker:
         var_min.insert(0,0)
         var_max.insert(0,0)
         if datecol is not None:
-            var_min.insert(0,int(mindate))         # min /max datum invoegen?
-            var_max.insert(0,int(maxdate))        
+            var_min.insert(0,"new Date('"+mindatestr.replace(' ','T')+"')")         # min /max datum invoegen?
+            var_max.insert(0,"new Date('"+maxdatestr.replace(' ','T')+"')")        
         line_out=line_out[:-2]
         g.write(line_out+'];\n')
         f.close()
@@ -272,9 +284,9 @@ class mapmaker:
         var_types=var_types+datacols
         s=json.dumps(var_types)    
         g.write('\n\nvar var_types='+s+';\n')
-        s=json.dumps(var_min)    
+        s=json.dumps(var_min).replace('"','') # quotes om datums verwijderen    
         g.write('\n\nvar var_min='+s+';\n')
-        s=json.dumps(var_max)        
+        s=json.dumps(var_max).replace('"','')        
         g.write('\n\nvar var_max='+s+';\n')
         g.close()
 
@@ -287,6 +299,7 @@ class mapmaker:
     def save_map (self, args):
 
         layer=self.area_layer
+        mapdata=self.mapdata
         fieldID=args['shape_fieldID']
         labelID=args['shape_labelID']
         outfile=args['outfile']
