@@ -49,7 +49,21 @@ function click_date () {
 
 	console.log(xpos, xScale.invert(xpos));
 	newdate=xScale.invert(xpos);	
-	datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();
+	datesel=newdate;
+
+// d3 calculates dates according to exact position, so we have to lookup the nearest date in our data. 
+// Faster but trickier solution would be to use rounding. This is guaranteed to work, but slower.
+
+	mind=data[0][0];
+	for (var d in date_index) {
+  		if (date_index.hasOwnProperty(d)) {
+  			if (Math.abs(datesel-d)<mind)
+  				mind=d;
+  		}
+  	}
+  	datesel=mind;
+
+	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();
 	datesel_asdate=newdate;
 	console.log(datesel, datesel_asdate);
 	update_choropleth();
@@ -161,7 +175,7 @@ function update_choropleth () {
 
 	update_var_info();   // 
 	console.log("day/regio/var",datesel,regiosel,varsel);
-	records=data.length;
+	records=data.length;	
 	start_row=date_index[datesel].start_row;
 	eind_row=date_index[datesel].eind_row;
 	console.log("start:end",start_row, eind_row);
