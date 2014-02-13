@@ -20,26 +20,53 @@
 
 
 <body>
-  map
   <div>
-  <ul id="varlist">
-    </ul>
-  </div>
-  
-  <div id="ts">
-  </div>
-<div id="chart"> 
-  <svg> </svg>
-</div>
-<div id="moviecontrols"> 
-  <a href="#" id="m_begin"> |&lt; </a>
-  <a href="#" id="m_prev">  &nbsp;&nbsp;&lt; </a>
-  <a href="#" id="m_start"> &nbsp;&nbsp;&gt; </a>
-  <a href="#" id="m_pause"> &nbsp;&nbsp;|| </a>
-  <a href="#" id="m_next">  &nbsp;&gt; </a>
-  <a href="#" id="m_last"> &nbsp;&nbsp;&gt;| </a
-</div>
+    <div class="leftbox">
+      <ul id="varlist">
+      </ul>
+      <ul id="sel_colormap">
+      </ul>
+      <ul id="sel_size" class="selbox">
+      </ul>
+      <ul id="sel_transform" class="selbox">
+          <li class="sel_heading"> Transform: </li>
+          <li class="transformname" id="trans_linear" data-transform="linear"> linear</li>
+          <li class="transformname" id="trans_sqrt" data-transform="sqrt"> sqrt</li>
+          <li class="transformname" id="trans_log2" data-transform="log2"> log2</li>
+          <li class="transformname" id="trans_log10" data-transform="log10"> log10</li>  
+      </ul>
 
+      <div >           
+        <div id="colormap_max">
+            <label class="ie_fallback"> max:</label>
+            <input type='text' id='edit_gradmax' class="ie_fallback" name='gradmax' value='' size='4'>
+        </div>
+        <div id="colormap_steps">
+            <label class="ie_fallback"> steps:</label>
+            <input type='text' id='edit_gradsteps' class="ie_fallback" name='gradsteps' value='' size='4'>
+        </div>
+        <div id="colormap_min">
+            <label class="ie_fallback"> min:</label>
+            <input type='text' id='edit_gradmin' class="ie_fallback" name='gradmin' value='' size='4'>  
+        </div>
+      </div>
+
+    </div>
+
+
+  <div class="rightbox">
+    <div id="ts">  </div>
+    <div id="chart">  <svg> </svg>  </div>
+    <div id="moviecontrols"> 
+        <a href="#" id="m_begin"> |&lt; </a>
+        <a href="#" id="m_prev">  &nbsp;&nbsp;&lt; </a>
+        <a href="#" id="m_start"> &nbsp;&nbsp;&gt; </a>
+        <a href="#" id="m_pause"> &nbsp;&nbsp;|| </a>
+        <a href="#" id="m_next">  &nbsp;&gt; </a>
+        <a href="#" id="m_last"> &nbsp;&nbsp;&gt;| </a>
+   </div>
+  </div>
+ </div>
 
 </body>
 

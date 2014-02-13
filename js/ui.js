@@ -5,6 +5,12 @@ var datesel=0;
 var regiosel=0;
 var varsel=varnames[2];
 
+
+var transform='log10';
+var colormapname='hot';
+var gradmax='max';
+var gradmin=0;
+var gradsteps=255;
 var minval=0;
 var maxval=0;
 var tminval=0;
@@ -27,6 +33,8 @@ var ts_xpos=400;  // label position
 var ts_ypos=10;
 var prev_regiocolors={};
 
+
+
 ts_width=800;
 ts_height=200;
 
@@ -34,9 +42,144 @@ var MonthName = [ "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December" ];
 
 
+
+function init_colormaps()
+{
+
+var html='<li class="sel_heading"> Colormaps: </li>';
+var selclas='';
+for (var key in colormaps) {
+  if (colormaps.hasOwnProperty(key)) {
+  	if (key==colormapname) 
+  		selclass='active_selectie';
+  	else
+  		selclass='';
+    html+='<li class="colormapname '+selclass+'" id="colormap_'+key+'" data-colormap="'+key+'">'+key+'</li>';
+  }
+  colormap=colormaps[colormapname](gradsteps);
+  colormaplength=colormap.length-1;
+}
+
+$('#sel_colormap').html(html);
+$('.colormapname').on('click',click_colormap);
+$('.colormapname').on('mouseenter ',enter_selectie);
+$('.colormapname').on('mouseout ',leave_selectie);
+
+$('#colormapname_'+colormapname).addClass('active_selectie');
+ //for (colormapname in colormaps)  break;
+ colormap=colormaps[colormapname](gradsteps);
+ colormaplength=colormap.length-1;
+ console.log('init_colormap:',colormapname,colormaplength,gradsteps);
+}
+
+
+var enter_selectie=function enter_selectie (evt) {
+	$(this).addClass('hover_selectie');
+}
+var leave_selectie=function enter_selectie (evt) {
+	$(this).removeClass('hover_selectie');
+}
+
+
+
+
+
+function update_gradient (e) {
+
+	
+	console.log('update_gradient:');
+	if (e.keyCode == '13') {
+		gradmax=$('#edit_gradmax').val();
+		gradsteps=$('#edit_gradsteps').val();
+		gradmin=$('#edit_gradmin').val();
+		console.log('update_gradient:',gradmin, gradmax, gradsteps);
+		colormap=colormaps[colormapname](gradsteps);	
+		draw_heatmap();	
+	}
+}
+
+
+function init_colormap_inputs() {
+
+	if 	(typeof(SVGForeignObjectElement)!== 'undefined') {
+		$('.ie_fallback').remove();
+		chart.append("foreignObject")
+		  .attr("width", 150)
+		  .attr("height", 50)
+		  .attr("x",imgwidth+150)
+		  .attr("y",35)
+		  .append("xhtml:body")
+		  .style("font", "14px Helvetica")
+		  .html("<label> max:</label> <input type='text' id='edit_gradmax'name='gradmax' value='"+gradmax+"' size=4/>");
+
+		chart.append("foreignObject")
+		  .attr("width", 150)
+		  .attr("height", 50)
+		  .attr("x",imgwidth+150)
+		  .attr("y",105)
+		  .append("xhtml:body")
+		  .style("font", "14px Helvetica")
+		  .html("<label> step:</label> <input type='text' id='edit_gradsteps'  name='gradsteps' value='"+gradsteps+"' size=4/>");
+
+		chart.append("foreignObject")
+		  .attr("width", 150)
+		  .attr("height", 50)
+		  .attr("x",imgwidth+150)
+		  .attr("y",185)
+		  .append("xhtml:body")
+		  .style("font", "14px Helvetica")
+		  .html("<label> min:</label> <input type='text' id='edit_gradmin'  name='gradmin' value='"+gradmin+"' size=4/>");
+	} 
+ 		
+	$("#edit_gradmax").val(gradmax);
+	$("#edit_gradsteps").val(gradsteps);
+	$("#edit_gradmin").val(gradmin);
+
+	$("#edit_gradmax").on('keydown',update_gradient);
+	$("#edit_gradsteps").on('keydown',update_gradient);
+	$("#edit_gradmin").on('keydown',update_gradient);
+
+}
+
+
+
+
+var click_colormap=function click_colormap (evt) {
+	colormapname=$(this).attr('data-colormap');
+	
+	console.log('click_colormap',colormapname);
+	colormap=colormaps[colormapname](gradsteps);
+	colormaplength=colormap.length-1;
+	console.log('click_colormap',colormapname,  colormaplength);
+	$('.colormapname ').removeClass('active_selectie');
+	$(this).addClass('active_selectie');
+	
+	draw_heatmap();
+	return false;
+}
+
+
+
 function color_transform (val){
 
 	if (val==0) return 0;
+	if (transform=='sqrt') {
+				val=Math.sqrt(val);
+	    	}
+	if (transform=='log2') {
+		if (val>0) {
+			val=Math.log(val);
+			} else { 
+			val=0;
+		}
+	}
+	if (transform=='log10') {
+		if (val>0) {
+			val=Math.log(val)/Math.LN10;
+			} else { 
+				val=0;
+			}
+	   }
 
 	return Math.log(val);
 }
@@ -55,16 +198,21 @@ function click_date () {
 // Faster but trickier solution would be to use rounding. This is guaranteed to work, but slower.
 
 	mind=data[0][0];
+	mindiff=Math.abs(datesel-mind);
 	for (var d in date_index) {
   		if (date_index.hasOwnProperty(d)) {
-  			if (Math.abs(datesel-d)<mind)
-  				mind=d;
+  			var d2=new Date(d);
+  			console.log('datediff:',  Math.abs(datesel-d2), mindiff, mind);
+  			if (Math.abs(datesel-d2)<mindiff) {
+  				mindiff=Math.abs(datesel-d2);
+  				mind=d2;
+  			}
   		}
   	}
   	datesel=mind;
 
 	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();
-	datesel_asdate=newdate;
+	datesel_asdate=mind;
 	console.log(datesel, datesel_asdate);
 	update_choropleth();
 	update_ts_sel();
@@ -187,7 +335,7 @@ function update_choropleth () {
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=data[rownr];
 		if (row[0]!=datesel) {
-			console.log("error-regioindex");
+			console.log("error-update chororpleth", start_row, eind_row);
 			}
 		var regio=row[1];			
 		val=row[varidx];			
@@ -203,7 +351,7 @@ function update_choropleth () {
 		//console.log(val);
 			colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));				
 				//console.log(minval, maxval, colorindex);
-			color=colormap[colorindex];				
+			color=colormap[colorindex];					
 			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 				//console.log('#r'+key+'_1',s);
 			el_ids=shape_ids[regio];				
@@ -227,7 +375,7 @@ function update_choropleth () {
 
 	$('#chartlabel').remove();
 	chart=d3.select("#chart_svg");
-	console.log('chart=',chart);
+	
 	chart.append("text")      // text label for the x axis
 		.attr("id","chartlabel")
   		.attr("class","label")
@@ -377,10 +525,9 @@ var line=d3.svg.line()
 			.style("stroke","blue")
 			.style("stroke-linecap","round")
 			.style("fill","none")
-			.style("stroke-width","2");
-			
-			
+			.style("stroke-width","2");			
 	}
+
 
  	d3.select("#svg_ts").on('click', click_date);
  	$('#ts_label').remove();
@@ -400,8 +547,6 @@ var line=d3.svg.line()
         .text(ts_label);
 
   update_ts_sel();
-
-
 }
 
 
@@ -516,8 +661,13 @@ function init_svg(){
 	//$('.outline').on('click',click_regio);
 	$('#axes_1').on('click',click_regio);
 
-	var svg=$("#chart").children()[0];
-	$(svg).attr('id','chart_svg');
+	var svg=document.getElementById('chart').children[0];
+	svg.setAttribute("id","chart_svg");
+	var viewBox=svg.getAttribute("viewBox");
+	viewBox="0 75"+viewBox.slice(3);
+	svg.setAttribute("viewBox",viewBox);
+	
+	console.log('viewbox=',viewBox);
 
 	
 	w=svg.getAttributeNS(null,'width');
@@ -537,7 +687,7 @@ function init_svg(){
 	setup_vars();	
 	update_var_info();
 	init_movie_ui();
-	colormap=colormap_hot(256);	
+	init_colormaps();
 	//console.log(colormap);
 	console.log(minval,maxval,varsel);
 
