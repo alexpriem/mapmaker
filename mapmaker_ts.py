@@ -195,7 +195,17 @@ class mapmaker:
         recordinfo=args['recordinfo']
         recs=recordinfo.strip().split(',')
         
-        regiocol=recs.index('regio')        
+        regiocol=recs.index('regio')
+        regiolabelcol=None
+        if 'regiolabel' in recs:
+            regiolabelcol=recs.index('regiolabel')
+        keylabelcol=None
+        if 'keylabel' in recs:
+            keylabelcol=recs.index('keylabel')
+        keycol=None
+        if 'key' in recs:
+            keycol=recs.index('key')
+
         normcol=None
         if 'norm' in recs:
             normcol=recs.index('norm')
@@ -219,25 +229,48 @@ class mapmaker:
         if datecol is not None:        
             s+='"'+varnames[datecol]+'",'
         s+='"'+varnames[regiocol]+'",'
-        s+=','.join(['"'+varnames[col]+'"' for col in datacols])+'];\n\n'
-        if datecol is not None:
-            s+='var has_date=true;\n'
-        s+='var data=[\n'
-        line_out=''
+        s+=','.join(['"'+varnames[col]+'"' for col in datacols])+'];\n'
         g.write(s)
         
+        var_types=[]
+        if 'key' in recs:
+            var_types.append('key')
+        if not('key' in recs) and ('keylabel' in recs):
+            var_types.append('keylabel')
+        if 'date' in recs:
+            var_types.append('date')
+        if 'regio' in recs:
+            var_types.append('regio')
+        var_types+=['data']*len(datacols)                        
+        s=json.dumps(var_types)    
+        g.write('var var_types='+s+';\n\n')
+
+
         
-        # build js-object: [date], regio:{data1,data2, data3}],  ...
+        
+        
+        
+        # build js-object: [keys], date, regio, data1, data2
         #
+
         var_min=[None]*len(datacols)
         var_max=[None]*len(datacols)
         mindatestr=None
         maxdatestr=None
         line_out='\n'
+        g.write('var data=[\n')
+        regiolabels={}
+        keylabels={}
         for line in f.readlines():        
             g.write(line_out)
             cols=line.strip().split(sep)
-            line_out='['    
+            line_out='['
+            regio=cols[regiocol]
+            if regiolabelcol is not None:
+                regiolabels[regio]=cols[regiolabelcol]
+            if keylabelcol is not None:
+                keylabels[regio]=cols[keylabelcol]
+
             if (datecol is not None):
                 date=cols[datecol]
                 d=dateutil.parser.parse(date)
@@ -250,9 +283,12 @@ class mapmaker:
                 #line_out+=date+","
                 
                 line_out+="new Date('"+date.replace(' ','T')+"'),"
-            line_out+=cols[regiocol]+','
-            if normcol is not None:
-                line_out+=cols[normcol]+','
+            line_out+=regio + ','
+            if keycol is not None:
+                line_out+=cols[keycol]+','
+            if keycol is None and keylabelcol is not None:
+                line_out+=cols[keylabelcol]+','
+
             line_out+=','.join([cols[col] for col in datacols])
             line_out+='],\n'
             #print line_out
@@ -267,7 +303,9 @@ class mapmaker:
         var_max.insert(0,0)
         if datecol is not None:
             var_min.insert(0,"new Date('"+mindatestr.replace(' ','T')+"')")         # min /max datum invoegen?
-            var_max.insert(0,"new Date('"+maxdatestr.replace(' ','T')+"')")        
+            var_max.insert(0,"new Date('"+maxdatestr.replace(' ','T')+"')")
+            
+            
         line_out=line_out[:-2]
         g.write(line_out+'];\n')
         f.close()
@@ -275,22 +313,20 @@ class mapmaker:
         if csvdir:
             s=json.dumps(csvfiles)
             g.write('\n\n var selectie='+s+';\n');
-        var_types=[]
-        if datecol:
-            var_types.append('date')
-        var_types.append('regio')
-        if normcol:
-            var_types.append('norm')
-        var_types=var_types+datacols
-        s=json.dumps(var_types)    
-        g.write('\n\nvar var_types='+s+';\n')
+
+
+        print len(regiolabels)
+        if len(regiolabels)>0:
+            s=json.dumps(regiolabels);
+            f=open("js\labels2.js","w")                        
+            f.write('var labels='+s+';\n')
+            f.close()
+        
         s=json.dumps(var_min).replace('"','') # quotes om datums verwijderen    
         g.write('\n\nvar var_min='+s+';\n')
         s=json.dumps(var_max).replace('"','')        
         g.write('\n\nvar var_max='+s+';\n')
-        g.close()
-
-        
+        g.close()        
 
 
 
@@ -376,7 +412,19 @@ class mapmaker:
             line='l'+r[1:]    
             el = xmlid[line]  # lookup regio_id  in xml        
             el.set('class', "border")
-
+       
+        del (xmlid['patch_1'])
+        del (xmlid['patch_2'])
+        del (xmlid['patch_3'])
+        del (xmlid['patch_4'])
+        del (xmlid['patch_5'])
+        
+        root=el.find("..")
+        
+        
+        
+        
+        
         ET.ElementTree(tree).write(outfile+'.svg')        
 
 

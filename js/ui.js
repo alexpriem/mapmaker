@@ -127,10 +127,14 @@ function prep_data () {
 	start_i=0;
 	dates=[];
 	date_index={};
+	regiocol=var_types.indexOf("regio");
+	datecol=var_types.indexOf("date");
+
+
 	for (i=0; i<records; i++) {
 		row=data[i];
-		d=row[0];
-		regio=row[1];
+		d=row[datecol];
+		regio=row[regiocol];
 
 		if (d-prevd!=0)  {			 // stupid javascript unable to compare dates
 			dates.push(d);
@@ -156,13 +160,13 @@ function prep_data () {
 
 	date_index[prevd]={startdatum:start_i, einddatum:i-1}
 	
-	mindate=var_min[0];
-	maxdate=var_max[0];
-	datesel=data[0][0];
+	mindate=var_min[datecol];
+	maxdate=var_max[datecol];
+	datesel=data[0][datecol];
 	datesel_asdate=datesel; //convert_date(datesel);
 	console.log ("prep:",mindate,maxdate,datesel_asdate);
 
-	regiosel=data[0][1];
+	regiosel=data[0][regiocol];
 }
 
 
@@ -223,6 +227,7 @@ function update_choropleth () {
 
 	$('#chartlabel').remove();
 	chart=d3.select("#chart_svg");
+	console.log('chart=',chart);
 	chart.append("text")      // text label for the x axis
 		.attr("id","chartlabel")
   		.attr("class","label")
@@ -407,12 +412,13 @@ var line=d3.svg.line()
 
 function setup_vars () {
 	var html='';
-	var start=1;
-	if (has_date) start=2;
-	for (i=start; i<varnames.length; i++) {
-		var varname=varnames[i];
-		html+='<li class="varnameli"> <a href="#" id="v_'+varname+'_'+i+'"" class="varname">'+varname  + '</a></li>';
 	
+	for (i=0; i<varnames.length; i++) {
+		console.log(var_types[i]);
+		if (var_types[i]=='data'){
+			var varname=varnames[i];
+			html+='<li class="varnameli"> <a href="#" id="v_'+varname+'_'+i+'"" class="varname">'+varname  + '</a></li>';
+		}	
 	}
 
 	$('#varlist').html(html);
@@ -512,6 +518,7 @@ function init_svg(){
 
 	var svg=$("#chart").children()[0];
 	$(svg).attr('id','chart_svg');
+
 	
 	w=svg.getAttributeNS(null,'width');
 	chart_width=w.slice(0,w.length-2);
@@ -519,6 +526,8 @@ function init_svg(){
 	chart_height=h.slice(0,h.length-2);
 
 	
+	$('#patch_1').remove();
+	$('#patch_2').remove();
 	$('#patch_3').remove();
     $('#patch_4').remove();
     $('#patch_5').remove();
@@ -532,7 +541,9 @@ function init_svg(){
 	//console.log(colormap);
 	console.log(minval,maxval,varsel);
 
-	if (has_date) {
+	console.log(var_types.indexOf('date'));
+	if (var_types.indexOf('date')>=0) {
+		console.log('prep');
 		prep_data();		
 		update_choropleth();
 		update_ts ();
