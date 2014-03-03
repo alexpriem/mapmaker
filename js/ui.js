@@ -22,7 +22,8 @@ var chart_ypos=100;
 var ts_xpos=400;  // label position
 var ts_ypos=10;
 var prev_regiocolors={};
-
+var datamin;
+var datamax;
 
 
 ts_width=800;
@@ -129,7 +130,8 @@ function prep_data () {
 	date_index={};
 	regiocol=var_types.indexOf("regio");
 	datecol=var_types.indexOf("date");
-
+	datamin=data[0][varidx];
+	datamax=data[0][varidx];
 
 	for (i=0; i<records; i++) {
 		row=data[i];
@@ -147,6 +149,13 @@ function prep_data () {
 
 
 		val=row[varidx];
+		if (val<datamin) {
+			datamin=val;
+		}
+		if (val>datamax) {
+			datamax=val;
+		}
+
 		if (!(regio in regio_ts)) {
 			regio_ts[regio]=[[d,val]];
 			regio_ts_min[regio]=val;
@@ -162,11 +171,11 @@ function prep_data () {
 	
 	mindate=var_min[datecol];
 	maxdate=var_max[datecol];
-	datesel=data[0][datecol];
+	datesel=data[0][datecol];  // init: begin met datum van eerste record.
 	datesel_asdate=datesel; //convert_date(datesel);
-	console.log ("prep:",mindate,maxdate,datesel_asdate);
+	console.log ("prep:",mindate,maxdate,datesel_asdate); 
 
-	regiosel=data[0][regiocol];
+	regiosel=data[0][regiocol]; // init: begin met regio van eerste record.
 }
 
 
@@ -184,6 +193,8 @@ function update_choropleth () {
 	eind_row=date_index[datesel].eind_row;
 	console.log("start:end",start_row, eind_row);
 	new_regiocolors={};
+	chart_min=data[0][varidx];  // chart minimum/maximum init.
+	chart_max=data[0][varidx];
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=data[rownr];
 		if (row[0]!=datesel) {
@@ -198,6 +209,12 @@ function update_choropleth () {
 		if ((val!=0) || ((typeof(prev_val)!="undefined") && (val!=prev_val))) {
 			if (val!=0) {
 				new_regiocolors[regio]=val;
+			}
+			if (val<chart_min) { 
+				chart_min=val;
+			}
+			if (val>chart_max) {
+				chart_max=val;
 			}
 			val=color_transform(val);
 		//console.log(val);
@@ -238,7 +255,17 @@ function update_choropleth () {
   		.attr("font-size", "16px")
   		.attr("font-weight", "bold")
         .text(datelabel);
-    
+
+
+	if (gradmax=='max') {
+		tgradmax=datamax;
+	} else {
+		tgradmax=gradmax;
+	}
+	tgradmin=gradmin;
+	tdelta=tgradmax-tgradmin;
+
+	draw_colormap();    
 }
 
 
@@ -519,11 +546,10 @@ function init_svg(){
 	viewBox="0 75"+viewBox.slice(3);
 	svg.setAttribute("viewBox",viewBox);
 	
-	console.log('viewbox=',viewBox);
-
-	
+	console.log('viewbox=',viewBox);	
 	w=svg.getAttributeNS(null,'width');
-	chart_width=w.slice(0,w.length-2);
+	chart_width=parseInt(w.slice(0,w.length-2));
+	svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
 	h=svg.getAttributeNS(null,'height');
 	chart_height=h.slice(0,h.length-2);
 

@@ -84,23 +84,26 @@ function init_colormap_inputs() {
 		$('.ie_fallback').remove();
 		var chart = d3.select("#chart_svg");
 		var svg=document.getElementById('chart').children[0];
-		w=svg.getAttributeNS(null,'width');
-		var imgwidth=w.slice(0,w.length-2);	
+		w=svg.getAttributeNS(null,'width');		
+		var imgwidth=parseInt(w.slice(0,w.length-2));
+		console.log('imgwidth:',imgwidth);
+	//	svg.setAttributeNS(null,'width',(imgwidth+200)+'pt');
 
+		offsetx=200;
 		chart.append("foreignObject")
 		  .attr("width", 150)
 		  .attr("height", 50)
-		  .attr("x",imgwidth+150)
-		  .attr("y",35)
+		  .attr("x",imgwidth-offsetx)
+		  .attr("y",100)
 		  .append("xhtml:body")
 		  .style("font", "14px Helvetica")
-		  .html("<label> max:</label> <input type='text' id='edit_gradmax'name='gradmax' value='"+gradmax+"' size=4/>");
+		  .html("<label> max:&nbsp;</label> <input type='text' id='edit_gradmax'name='gradmax' value='"+gradmax+"' size=4/>");
 
 		chart.append("foreignObject")
 		  .attr("width", 150)
 		  .attr("height", 50)
-		  .attr("x",imgwidth+150)
-		  .attr("y",105)
+		  .attr("x",imgwidth-offsetx)
+		  .attr("y",180)
 		  .append("xhtml:body")
 		  .style("font", "14px Helvetica")
 		  .html("<label> step:</label> <input type='text' id='edit_gradsteps'  name='gradsteps' value='"+gradsteps+"' size=4/>");
@@ -108,11 +111,11 @@ function init_colormap_inputs() {
 		chart.append("foreignObject")
 		  .attr("width", 150)
 		  .attr("height", 50)
-		  .attr("x",imgwidth+150)
-		  .attr("y",185)
+		  .attr("x",imgwidth-offsetx)
+		  .attr("y",270)
 		  .append("xhtml:body")
 		  .style("font", "14px Helvetica")
-		  .html("<label> min:</label> <input type='text' id='edit_gradmin'  name='gradmin' value='"+gradmin+"' size=4/>");
+		  .html("<label> min:&nbsp;</label> <input type='text' id='edit_gradmin'  name='gradmin' value='"+gradmin+"' size=4/>");
 	} 
  		
 	$("#edit_gradmax").val(gradmax);
@@ -124,6 +127,79 @@ function init_colormap_inputs() {
 	$("#edit_gradmin").on('keydown',update_gradient);
 
 }
+
+
+function draw_colormap () {
+
+console.log("draw_colormap", colormaplength);
+
+
+$('.colormap').remove();
+var barlength=chart_height/3;
+var barstep=(barlength/gradsteps);
+console.log(barlength, barstep);
+var svg=document.getElementById('chart').children[0];
+w=svg.getAttributeNS(null,'width');		
+var imgwidth=parseInt(w.slice(0,w.length-2));
+
+chart.append("rect")
+	.attr("class","colormap")
+	.attr("x",chart_width-25)
+	.attr("y",100)
+	.attr("width",20)
+	.attr("height",barlength)
+	.style("fill","none")
+	.style("stroke","black")
+	.style("stroke-width","1px");
+  
+ for (i=1; i<gradsteps; i++) {
+ 	color=colormap[i];
+	chart.append("rect")
+		.attr("class","colormap")
+		.attr("x",chart_width-24)
+		.attr("y",100+barlength-barstep*i-1)
+		.attr("width",18)
+		.attr("height",barstep)
+		.style("fill","rgb("+color[0]+","+color[1]+","+color[2]+")")
+		.style("stroke","rgb("+color[0]+","+color[1]+","+color[2]+")")
+		.style("stroke-width","1px");
+
+ }
+
+
+  if (transform=='linear') {
+	var colorScale=d3.scale.linear();
+  }  
+  if (transform=='log10') {  	
+  	var colorScale=d3.scale.log();
+  }
+  if (transform=='log2') {
+  	var colorScale=d3.scale.log().base(2);
+  }
+  if (transform=='sqrt') {
+  	var colorScale=d3.scale.pow().exponent(0.5);
+  }
+
+  console.log('Colorscale, transform:', transform);
+  console.log('Colorscale, datadomain',datamin, datamax);
+  console.log('Colorscale, domain',tgradmin, tgradmax);
+  tgradmin=1;
+  colorScale.domain([tgradmax, tgradmin]);
+  colorScale.range([0,barlength]); 
+  colorScale.ticks(8);
+
+  var colorAxis=d3.svg.axis();  
+  colorAxis.scale(colorScale)       
+       .orient("left");
+
+  scalepos=chart_width-25;
+  chart.append("g")
+        .attr("class","yaxis colormap")
+        .attr("transform","translate("+scalepos+",100)")
+        .call(colorAxis);        
+ 
+}
+
 
 
 
