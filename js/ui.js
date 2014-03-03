@@ -185,6 +185,14 @@ function update_choropleth () {
 
 	var records, color, colorstring;
 
+	if (gradmax=='max') {
+		tgradmax=datamax;
+	} else {
+		tgradmax=gradmax;
+	}
+	tgradmin=gradmin;
+	tdelta=tgradmax-tgradmin;
+	console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
 
 	update_var_info();   // 
 	console.log("day/regio/var",datesel,regiosel,varsel);
@@ -218,7 +226,14 @@ function update_choropleth () {
 			}
 			val=color_transform(val);
 		//console.log(val);
-			colorindex=parseInt(254*(val-tminval)/(1.0*(tmaxval-tminval)));				
+			//colorindex=parseInt(gradsteps*(val-tminval)/(1.0*(tmaxval-tminval)));	
+
+			colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
+			if (colorindex<0) colorindex=0;
+			if (colorindex>=gradsteps) colorindex=gradsteps-1;
+			console.log(colorindex, (val-tgradmin)/tdelta);
+			colorindex=parseInt(colorindex);
+
 				//console.log(minval, maxval, colorindex);
 			color=colormap[colorindex];					
 			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
@@ -257,14 +272,7 @@ function update_choropleth () {
         .text(datelabel);
 
 
-	if (gradmax=='max') {
-		tgradmax=datamax;
-	} else {
-		tgradmax=gradmax;
-	}
-	tgradmin=gradmin;
-	tdelta=tgradmax-tgradmin;
-
+	
 	draw_colormap();    
 }
 
