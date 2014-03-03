@@ -142,6 +142,16 @@ stroke-width: 1;
 stroke: #660000;
 }
 
+.hover_selectie {
+ background-color: LightBlue;
+}
+.active_selectie {
+ background-color: SteelBlue;
+}
+
+
+
+
 #m_begin{
 	display:inline-block;
   	width:32px;

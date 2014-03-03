@@ -494,7 +494,7 @@ class mapmaker:
         for jsfrag in jsfrags[1:]:
             jsfile=jsfrag.split('"')[0]
             if jsfile in not_replaceable_js:
-                s='\n<script type="text/javascript" src="'+jsfile+'"> </script>\n'
+                s='<script type="text/javascript" src="'+jsfile+'"> </script>\n'
                 f.write(s)
                 if verbose:
                     print jsfile,'skipped'
@@ -502,7 +502,7 @@ class mapmaker:
                 f.write('\n<script type="text/javascript">\n')        
                 js=open(jsfile,'r').read()    
                 f.write(js)
-                f.write('\n</script>\n')
+                f.write('</script>\n')
                 if verbose:
                     print jsfile,'included'
             
