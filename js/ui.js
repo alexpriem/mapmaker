@@ -185,13 +185,20 @@ function update_choropleth () {
 
 	var records, color, colorstring;
 
+	chart=d3.select("#chart_svg");
+
 	if (gradmax=='max') {
 		tgradmax=datamax;
 	} else {
 		tgradmax=gradmax;
 	}
 	tgradmin=gradmin;
+	draw_colormap(); 
+
+	tgradmin=color_transform(gradmin);
+	tgradmax=color_transform(tgradmax);
 	tdelta=tgradmax-tgradmin;
+
 	console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
 
 	update_var_info();   // 
@@ -230,8 +237,7 @@ function update_choropleth () {
 
 			colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
 			if (colorindex<0) colorindex=0;
-			if (colorindex>=gradsteps) colorindex=gradsteps-1;
-			console.log(colorindex, (val-tgradmin)/tdelta);
+			if (colorindex>=gradsteps) colorindex=gradsteps-1;			
 			colorindex=parseInt(colorindex);
 
 				//console.log(minval, maxval, colorindex);
@@ -257,9 +263,7 @@ function update_choropleth () {
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
 
-	$('#chartlabel').remove();
-	chart=d3.select("#chart_svg");
-	
+	$('#chartlabel').remove();	
 	chart.append("text")      // text label for the x axis
 		.attr("id","chartlabel")
   		.attr("class","label")
@@ -273,7 +277,7 @@ function update_choropleth () {
 
 
 	
-	draw_colormap();    
+	   
 }
 
 
@@ -551,10 +555,8 @@ function init_svg(){
 	var svg=document.getElementById('chart').children[0];
 	svg.setAttribute("id","chart_svg");
 	var viewBox=svg.getAttribute("viewBox");
-	viewBox="0 75"+viewBox.slice(3);
-	svg.setAttribute("viewBox",viewBox);
-	
-	console.log('viewbox=',viewBox);	
+	viewBox=''
+	svg.setAttribute("viewBox",viewBox);	
 	w=svg.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
 	svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
