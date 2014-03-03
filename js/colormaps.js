@@ -184,13 +184,25 @@ chart.append("rect")
   console.log('Colorscale, datadomain',datamin, datamax);
   console.log('Colorscale, domain',tgradmin, tgradmax);
   tgradmin=1;
-  colorScale.domain([tgradmax, tgradmin]);
-  colorScale.range([0,barlength]); 
-  colorScale.ticks(8);
+  colorScale.domain([tgradmax, tgradmin])
+  			.range([0,barlength])
+  			.ticks(1);
+
+
 
   var colorAxis=d3.svg.axis();  
   colorAxis.scale(colorScale)       
-       .orient("left");
+       .orient("left")
+       .tickFormat(function(d) {
+       	 		var x = Math.log(d) / Math.log(10) + 1e-6;
+       	 		val=Math.abs(x - Math.floor(x));
+       	 		if (val >= .75) return "";
+       	 		if ((val<.68) && (val>.31)) return "";
+       			if ((d/1000000)>=1) { return d=d/1000000+"M"; }
+    			if ((d/1000)>=1) { return d=d/1000+"k"; }
+    			return d;
+			});
+
 
   scalepos=chart_width-25;
   chart.append("g")
