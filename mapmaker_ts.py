@@ -255,6 +255,19 @@ class mapmaker:
         g=open("js/data.js",'w')    
 
         varnames=f.readline().strip().split(sep)
+        
+        xlabel=args.get('xlabel','')
+        ylabel=args.get('ylabel','')
+        label_xpos=args.get('label_xpos','')
+        label_ypos=args.get('label_ypos','')
+        title=args.get('title','')
+        g.write('var xlabel="%s";\n' % xlabel);
+        g.write('var ylabel="%s";\n' % ylabel);
+        g.write('var label_xpos=%s;\n' % label_xpos);
+        g.write('var label_ypos=%s;\n' % label_ypos);
+        g.write('var label="%s";\n' % title);
+        
+        
         s='var varnames=['
         if datecol is not None:        
             s+='"'+varnames[datecol]+'",'
@@ -536,7 +549,7 @@ class mapmaker:
         f.close()
         
         
-
+    
 
 
 
@@ -566,10 +579,11 @@ parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', 
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
 parser.add_argument('-r', '--record', dest='recordinfo',  help='recordbeschrijving: regiokey, norm, data, regiolabel, dummy, key, keylabel', required=True)
+parser.add_argument('-xlabel', dest='xlabel',  help='xaxis label', required=False, default=0.1)
+parser.add_argument('-ylabel', dest='ylabel',  help='yaxis label', required=False, default=0.9)
+parser.add_argument('-label_xpos', dest='label_xpos',  help='xpos label', required=False, default=0.1)
+parser.add_argument('-label_ypos', dest='label_ypos',  help='ypos label', required=False, default=0.9)
 parser.add_argument('-title', dest='title',  help='title', required=False, default='')
-parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=0.1)
-parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
-parser.add_argument('-label', dest='label',  help='title', required=False, default='label')
 parser.add_argument('-kf','--keyfile', dest='keyfile',  help='keyfile', required=False)
 parser.add_argument('-rf','--regiofile', dest='regiofile',  help='regiofile', required=False)
 

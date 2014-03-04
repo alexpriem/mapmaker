@@ -394,14 +394,14 @@ function update_ts () {
     	.attr("class", "label")
     	.attr("y", ts_height-10)
     	.attr("x", ts_width/2)    	
-    	.text("datum");
+    	.text(xlabel);
 
     canvas.append("text")
     	.attr("class", "label")
     	.attr("x", 0)
     	.attr("y", 0)    	
     	.attr("transform", "translate(12,100)rotate(270)")    
-    	.text("events");
+    	.text(ylabel);
 
 	
 
@@ -457,14 +457,18 @@ var line=d3.svg.line()
 function setup_vars () {
 	console.log('setup_vars');
 	var html='';
-	
+	html+='<li class="sel_heading"> Variable: </li>';
 	for (i=0; i<varnames.length; i++) {
 		console.log(var_types[i]);
 		if (var_types[i]=='data'){
 			var varname=varnames[i];
-			html+='<li class="varnameli"> <a href="#" data-varname="'+varname+'" class="varname">'+varname  + '</a></li>';
+			html+='<li data-varname="'+varname+'" class="varname">'+varname  + '</li>';
 		}	
 	}
+	
+
+	$('.varname').on('mouseenter ',enter_selectie);
+	$('.varname').on('mouseout ',leave_selectie);
 
 
 	$('#varlist').html(html);
@@ -563,7 +567,10 @@ function init_movie_ui () {
 function init_svg(){
 	console.log('init_svg');
 	//$('.outline').on('click',click_regio);
+
+	$('#headertxt').html('<b>'+ label+ '</b>');
 	$('#axes_1').on('click',click_regio);
+	window.document.title=label;
 
 	var svg=document.getElementById('chart').children[0];
 	svg.setAttribute("id","chart_svg");	
@@ -584,7 +591,7 @@ function init_svg(){
 
     if (country_labels.length>0) {
     	console.log('typeahead');
-		$('#keyentry').typeahead({source:country_labels});
+		$('#keyentry').typeahead({source:country_labels,  valueKey: "Country"});
 		$('#keyentry').on('change',update_selectie);
 	}
 	setup_vars();		
