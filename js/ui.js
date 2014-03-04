@@ -26,11 +26,11 @@ var datamin;
 var datamax;
 
 
-ts_width=800;
+ts_width=650;
 ts_height=200;
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December" ];
+    				"July", "August", "September", "October", "November", "December" ];
 
 
 
@@ -84,26 +84,17 @@ function click_regio(evt) {
 }
 
 
-function update_var_info ()  {
-
-	varidx=varnames.indexOf(varsel);
-	minval=var_min[varidx];
-	tminval=minval;
-	if (minval!=0) tminval=color_transform(minval);	
-	maxval=var_max[varidx];	// FIXME: transform bijhouden.
-	tmaxval=minval;
-	if (maxval!=0) tmaxval=color_transform(maxval);
-}
-
 function change_var () {
 
 /* todo: cleanup  + handle multipolygons */
-
 	
-	var varsel=this.id.split('_')[1];
-	console.log(varsel);
-	update_var_info ();
+	varsel=$(this).attr('data-varname');
+	console.log('change_var:',varsel);
+	varidx=varnames.indexOf(varsel);
+	minval=var_min[varidx];	
+	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	update_choropleth();	
+	update_ts();	
 	return false;
 }
 
@@ -188,7 +179,7 @@ function update_choropleth () {
 	chart=d3.select("#chart_svg");
 
 	if (gradmax=='max') {
-		tgradmax=datamax;
+		tgradmax=datamax;      // max is afhankelijk van keuze
 	} else {
 		tgradmax=gradmax;
 	}
@@ -201,8 +192,7 @@ function update_choropleth () {
 
 	console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
 
-	update_var_info();   // 
-	console.log("day/regio/var",datesel,regiosel,varsel);
+	console.log("day/regio/var",datesel,regiosel,varsel, varidx);
 	records=data.length;	
 	start_row=date_index[datesel].start_row;
 	eind_row=date_index[datesel].eind_row;
@@ -213,7 +203,7 @@ function update_choropleth () {
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=data[rownr];
 		if (row[0]!=datesel) {
-			console.log("error-update chororpleth", start_row, eind_row);
+			console.log("error-update choropleth", start_row, eind_row);
 			}
 		var regio=row[1];			
 		val=row[varidx];			
@@ -460,13 +450,14 @@ var line=d3.svg.line()
 
 
 function setup_vars () {
+	console.log('setup_vars');
 	var html='';
 	
 	for (i=0; i<varnames.length; i++) {
 		console.log(var_types[i]);
 		if (var_types[i]=='data'){
 			var varname=varnames[i];
-			html+='<li class="varnameli"> <a href="#" id="v_'+varname+'_'+i+'"" class="varname">'+varname  + '</a></li>';
+			html+='<li class="varnameli"> <a href="#" data-varname="'+varname+'" class="varname">'+varname  + '</a></li>';
 		}	
 	}
 
@@ -569,10 +560,8 @@ function init_svg(){
 	$('#axes_1').on('click',click_regio);
 
 	var svg=document.getElementById('chart').children[0];
-	svg.setAttribute("id","chart_svg");
-	var viewBox=svg.getAttribute("viewBox");
-	viewBox=''
-	svg.setAttribute("viewBox",viewBox);	
+	svg.setAttribute("id","chart_svg");	
+	svg.removeAttribute("viewBox");	
 	w=svg.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
 	svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
@@ -592,8 +581,7 @@ function init_svg(){
 		$('#keyentry').typeahead({source:labels});
 		$('#keyentry').on('change',update_selectie);
 	}
-	setup_vars();	
-	update_var_info();
+	setup_vars();		
 	init_movie_ui();
 	init_colormaps();
 	//console.log(colormap);
