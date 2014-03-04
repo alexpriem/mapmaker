@@ -93,6 +93,7 @@ function change_var () {
 	varidx=varnames.indexOf(varsel);
 	minval=var_min[varidx];	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
+	prep_data();
 	update_choropleth();	
 	update_ts();	
 	return false;
@@ -121,45 +122,50 @@ function prep_data () {
 	date_index={};
 	regiocol=var_types.indexOf("regio");
 	datecol=var_types.indexOf("date");
+	varidx=varnames.indexOf(varsel);
 	datamin=data[0][varidx];
 	datamax=data[0][varidx];
 
+
+	ts_total=[];
+	for (i=0; i<regio_keys.length;i++) {
+		key=regio_keys[i];
+		regio_ts[key]=[];
+		regio_ts_min[key]=[];	
+		regio_ts_max[key]=[];
+	}
 	for (i=0; i<records; i++) {
 		row=data[i];
 		d=row[datecol];
-		regio=row[regiocol];
+		regio=row[regiocol];		
 
+		val=row[varidx];
 		if (d-prevd!=0)  {			 // stupid javascript unable to compare dates
-			dates.push(d);
+			dates.push(d);			
 			if (prevd!=0) {
 				date_index[prevd]={start_row:start_i, eind_row:i-1}
 				start_i=i;
-			}
+				ts_total.push([prevd,total]);
+			}			
+			total=0;
 			prevd=d;			
 		}
 
-
-		val=row[varidx];
+		total+=val;
 		if (val<datamin) {
 			datamin=val;
 		}
 		if (val>datamax) {
 			datamax=val;
-		}
-
-		if (!(regio in regio_ts)) {
-			regio_ts[regio]=[[d,val]];
-			regio_ts_min[regio]=val;
-			regio_ts_max[regio]=val;
-		} else {
-			regio_ts[regio].push([d,val]);
-			if (val<regio_ts_min[regio]) regio_ts_min[regio]=val;
-			if (val>regio_ts_max[regio]) regio_ts_max[regio]=val;
-		}
+		}		
+		regio_ts[regio].push([d,val]);
+		if (val<regio_ts_min[regio]) regio_ts_min[regio]=val;
+		if (val>regio_ts_max[regio]) regio_ts_max[regio]=val;		
 	}
 
 	date_index[prevd]={startdatum:start_i, einddatum:i-1}
-	
+	ts_total.push([prevd,total]);
+
 	mindate=var_min[datecol];
 	maxdate=var_max[datecol];
 	datesel=data[0][datecol];  // init: begin met datum van eerste record.
@@ -303,6 +309,8 @@ function update_ts_sel () {
 function update_ts () {
 
 
+ $('#svg_ts').remove();
+ $('#svg_line').remove();
  canvas = d3.select("#ts")
     		.append("svg")
     		.attr('xmlns',"http://www.w3.org/2000/svg")
@@ -415,18 +423,15 @@ var line=d3.svg.line()
 		canvas.append("svg:path")
 			//.attr("id","l_"+day+"_"+month)
 			.attr("class","dayl")
-			.attr("d", line(ydata))		
-			.style("stroke","blue")
-			.style("stroke-linecap","round")
-			.style("fill","none")
-			.style("stroke-width","2");			
+			.attr("d", line(ydata));
+				
 	}
 
 
  	d3.select("#svg_ts").on('click', click_date);
  	$('#ts_label').remove();
 
- 	var ts_label=labels[regiosel];
+ 	var ts_label=regio_label2key[regiosel];
 
  	console.log('labelpos:',ts_xpos, ts_ypos);
 	canvas.append("text")      // text label for the x axis
@@ -460,6 +465,7 @@ function setup_vars () {
 			html+='<li class="varnameli"> <a href="#" data-varname="'+varname+'" class="varname">'+varname  + '</a></li>';
 		}	
 	}
+
 
 	$('#varlist').html(html);
 	$('.varname').on('click',change_var);
@@ -576,9 +582,9 @@ function init_svg(){
     $('#patch_5').remove();
     $('#patch_6').remove();
 
-    if (labels.length>0) {
+    if (country_labels.length>0) {
     	console.log('typeahead');
-		$('#keyentry').typeahead({source:labels});
+		$('#keyentry').typeahead({source:country_labels});
 		$('#keyentry').on('change',update_selectie);
 	}
 	setup_vars();		

@@ -19,6 +19,31 @@ class mapmaker:
     def __init__(self, args):
         self.args=args
 
+
+    def read_keyfile(self,keyfile,sep):
+
+        keylabel={}
+        if keyfile is not None:
+            f=open(keyfile)
+            f.readline()
+            for line in f.readlines():
+                keyvalue=line.strip().split(sep)                
+                if len(keyvalue)!=2:
+                    raise RuntimeError("expected key/value pairs in file:"+keyfile)
+                keylabel[keyvalue[0]]=keyvalue[1]
+        return keylabel
+
+    def write_keyfile(self,filename,keydict,prefix):
+            f=open(filename,'w')
+            keytxt=json.dumps(keydict.keys());
+            f.write("var %s_keys=%s;\n\n" %(prefix,keytxt));
+            valuestxt=json.dumps(keydict.values());
+            f.write("var %s_labels=%s;\n\n" %(prefix,valuestxt));
+            dicttxt=json.dumps(keydict);
+            f.write("var %s_label2key=%s;\n\n" %(prefix,dicttxt));
+            f.close()
+    
+
     def draw_areas(self,p,graph,color,regio_id):
 
         # returns a list of dom-id's for every polygon drawn
@@ -194,6 +219,11 @@ class mapmaker:
         outfile=args['outfile']
         recordinfo=args['recordinfo']
         recs=recordinfo.strip().split(',')
+        # simpele syntaxcheck
+        allowed_keys=['regio','regiolabel','keylabel','key','data','dummy','date','norm']
+        for r in recs:            
+            if r not in allowed_keys:
+                raise RuntimeError('unknown key for recordinfo:'+str(r)+'\nallowed keys:'+str(allowed_keys))
         
         regiocol=recs.index('regio')
         regiolabelcol=None
@@ -314,14 +344,18 @@ class mapmaker:
             s=json.dumps(csvfiles)
             g.write('\n\n var selectie='+s+';\n');
 
+        keyfile=args['keyfile']
+        if keyfile is not None:
+            keylabels=self.read_keyfile(keyfile,sep)
+        regiofile=args['regiofile']
+        if regiofile is not None:
+            regiolabels=self.read_keyfile(regiofile,sep)
+                                
+        self.write_keyfile('js/regiolabels.js',regiolabels,'regio')
+        self.write_keyfile('js/keylabels.js',keylabels,'country')
+            
 
-        print len(regiolabels)
-        if len(regiolabels)>0:
-            s=json.dumps(regiolabels);
-            f=open("js\labels2.js","w")                        
-            f.write('var labels='+s+';\n')
-            f.close()
-        
+            
         s=json.dumps(var_min).replace('"','') # quotes om datums verwijderen    
         g.write('\n\nvar var_min='+s+';\n')
         s=json.dumps(var_max).replace('"','')        
@@ -346,13 +380,13 @@ class mapmaker:
         nonecounter=0
         regios=[]
         regio_ids={}
-        labels={}
+        regiolabels={}
         for feature in self.area_layer:
            # print feature.GetFieldCount()        
             regio=int(feature.GetField(fieldID))
             if labelID is not None:
                 label=feature.GetField(labelID)
-                labels[regio]=label            
+                regiolabels[regio]=label            
             geom=feature.GetGeometryRef()
             if geom is not None:    
                 geometryParcel = loads(geom.ExportToWkb())
@@ -375,9 +409,6 @@ class mapmaker:
             for feature in self.outline_layer:
                # print feature.GetFieldCount()        
                 outline_regio=int(feature.GetField(fieldID))
-                if labelID is not None:
-                    label=feature.GetField(labelID)
-                    labels[regio]=label
                 val=mapdata.get(regio,None)
                 if val is None:
                     nonecounter+=1                
@@ -419,15 +450,8 @@ class mapmaker:
         del (xmlid['patch_4'])
         del (xmlid['patch_5'])
         
-        root=el.find("..")
-        
-        
-        
-        
-        
+        root=el.find("..")        
         ET.ElementTree(tree).write(outfile+'.svg')        
-
-
         s=json.dumps(regio_ids);
         f=open("js/shape_ids.js",'w')
         f.write("var shape_ids=");
@@ -435,14 +459,9 @@ class mapmaker:
         f.write(';\n');
         f.close()
 
-        s='{}'
+        s='{}'    
         if labelID is not None:
-            s=json.dumps(labels);
-        f=open("js/labels.js",'w')
-        f.write("var labels=");
-        f.write(s);
-        f.write(';\n');
-        f.close()
+            self.write_keyfile('js/regiolabels.js',labels,'regio')
 
 
 
@@ -551,6 +570,9 @@ parser.add_argument('-title', dest='title',  help='title', required=False, defau
 parser.add_argument('-label_x', dest='label_x',  help='title', required=False, default=0.1)
 parser.add_argument('-label_y', dest='label_y',  help='title', required=False, default=0.9)
 parser.add_argument('-label', dest='label',  help='title', required=False, default='label')
+parser.add_argument('-kf','--keyfile', dest='keyfile',  help='keyfile', required=False)
+parser.add_argument('-rf','--regiofile', dest='regiofile',  help='regiofile', required=False)
+
 
 args=vars(parser.parse_args())
 m=mapmaker(args)

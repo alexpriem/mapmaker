@@ -233,6 +233,15 @@ fill none;
   color:#000;
 }
 
+
+.dayl {
+stroke: blue; 
+stroke-linecap: round; 
+fill: none; 
+stroke-width: 2;
+}
+
+
 #m_begin{
 	display:inline-block;
   	width:32px;
