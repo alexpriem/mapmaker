@@ -531,7 +531,7 @@ ET.register_namespace("","http://www.w3.org/2000/svg")
 
 parser = argparse.ArgumentParser(description='generate calendar from repeating data')
 
-parser.add_argument('-s', '--shapefile', dest='area_shapefile',  help='esri intput shapefile', required=True)
+parser.add_argument('-sh', '--shapefile', dest='area_shapefile',  help='esri intput shapefile', required=True)
 parser.add_argument('-sf', dest='shape_fieldID',  help='shapefile area key variabele', required=True, default=None)
 parser.add_argument('-sl', dest='shape_labelID',  help='shapefile area label variabele', required=False, default=None)
 
@@ -542,7 +542,7 @@ parser.add_argument('-ll', dest='outline_labelID',  help='shapefile area label v
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-c', '--csvfile', dest='csvfile',  help='csv input file name')
 group.add_argument('-cd', '--csvdir', dest='csvdir',  help='directory with csv input files')
-parser.add_argument('-d', dest='sep',  help='delimiter of csv infile', required=False, default=',')
+parser.add_argument('-s', '--sep', dest='sep',  help='delimiter of csv infile', required=False, default=',')
 parser.add_argument('-o', dest='outfile',  help='output basename for .svg/.js', required=False, default='')
 parser.add_argument('-fullhtml', dest='fullhtml',  help='include everything (js, css) in html file', required=False, default=False, action='store_true')
 parser.add_argument('-verbose', dest='verbose',  help='verbose debuginfo', required=False, default=False, action='store_true')
