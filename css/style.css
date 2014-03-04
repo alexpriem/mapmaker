@@ -83,8 +83,11 @@ fill none;
 }
 
 .outline {
-stroke-width: 1;
-stroke: #660000;
+}
+
+.border {
+  stroke:#222222;
+  stroke-width:5.0;
 }
 
 .hover_selectie {

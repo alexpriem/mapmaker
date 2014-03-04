@@ -282,6 +282,19 @@ function update_choropleth () {
 
 
 
+function update_selectie () {
+	console.log ('selectie=',$(this).val());
+	selected_keylabel=$(this).val()
+	selected_keyid=key2id[selected_keylabel];
+	console.log ('selectie=',selected_keyid);
+
+	update_choropleth ();	
+	update_ts();	
+}
+
+
+
+
 function update_ts_sel () {
 	$("#ts_line").remove();	
 	canvas.append("line")
@@ -547,6 +560,9 @@ function init_movie_ui () {
 	$('#m_last').on('click',movie_last);
 }
 
+
+
+
 function init_svg(){
 	console.log('init_svg');
 	//$('.outline').on('click',click_regio);
@@ -571,7 +587,11 @@ function init_svg(){
     $('#patch_5').remove();
     $('#patch_6').remove();
 
-
+    if (labels.length>0) {
+    	console.log('typeahead');
+		$('#keyentry').typeahead({source:labels});
+		$('#keyentry').on('change',update_selectie);
+	}
 	setup_vars();	
 	update_var_info();
 	init_movie_ui();
