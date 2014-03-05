@@ -589,11 +589,14 @@ function init_svg(){
     $('#patch_5').remove();
     $('#patch_6').remove();
 
-    if (country_labels.length>0) {
-    	console.log('typeahead');
+    if (('key' in var_types) && (country_labels.length>0))  {    	
 		$('#keyentry').typeahead({source:country_labels,  valueKey: "Country"});
 		$('#keyentry').on('change',update_selectie);
+	} else {
+		$('#keyentry').css('display','none');
+		$('#keylabel').css('display','none');
 	}
+
 	setup_vars();		
 	init_movie_ui();
 	init_colormaps();
