@@ -219,8 +219,7 @@ fill none;
 
 #rightbox li {
   display: inline;  
-  margin: 0 0.5em 0 0;
-  background-color: LightBlue;
+  margin: 0 0.5em 0 0;  
   color:#000;
 }
 

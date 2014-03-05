@@ -1,6 +1,9 @@
 var regio_ts={};
 var regio_ts_min={};
 var regio_ts_max={};
+var tabsel;
+var datesel_a=null;
+var datesel_b=null;
 var datesel=0;
 var regiosel=0;
 var varsel=varnames[2];
@@ -38,14 +41,15 @@ var MonthName = [ "January", "February", "March", "April", "May", "June",
 
 
 
-function click_date () {
+function click_ts () {
 	
 	
 	xpos=d3.mouse(this)[0];
 
 	console.log(xpos, xScale.invert(xpos));
-	newdate=xScale.invert(xpos);	
+	newdate=xScale.invert(xpos);		
 	datesel=newdate;
+
 
 // d3 calculates dates according to exact position, so we have to lookup the nearest date in our data. 
 // Faster but trickier solution would be to use rounding. This is guaranteed to work, but slower.
@@ -55,18 +59,23 @@ function click_date () {
 	for (var d in date_index) {
   		if (date_index.hasOwnProperty(d)) {
   			var d2=new Date(d);
-  			console.log('datediff:',  Math.abs(datesel-d2), mindiff, mind);
+  			//console.log('datediff:',  Math.abs(datesel-d2), mindiff, mind);
   			if (Math.abs(datesel-d2)<mindiff) {
   				mindiff=Math.abs(datesel-d2);
   				mind=d2;
   			}
   		}
   	}
-  	datesel=mind;
+  	datesel=mind;  	
+	if (tabsel=='a') {
+		datesel_a=mind;		
+	}
+	if (tabsel=='b') {
+		datesel_b=mind;		
+	}
 
-	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();
-	datesel_asdate=mind;
-	console.log(datesel, datesel_asdate);
+	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
+	console.log(datesel,datesel_a,datesel_b);
 	update_choropleth();
 	update_ts_sel();
 	return false;
@@ -168,9 +177,10 @@ function prep_data () {
 
 	mindate=var_min[datecol];
 	maxdate=var_max[datecol];
-	datesel=data[0][datecol];  // init: begin met datum van eerste record.
-	datesel_asdate=datesel; //convert_date(datesel);
-	console.log ("prep:",mindate,maxdate,datesel_asdate); 
+	datesel=data[0][datecol];  // init: begin met datum van eerste record.	
+	datesel_a=datesel;
+
+	console.log ("prep:",mindate,maxdate); 
 
 	regiosel=data[0][regiocol]; // init: begin met regio van eerste record.
 }
@@ -181,6 +191,9 @@ function prep_data () {
 function update_choropleth () {
 
 	var records, color, colorstring;
+
+
+// voor entry: datesel bevat  huidige datumkeuze uit tab.
 
 	chart=d3.select("#chart_svg");
 
@@ -254,7 +267,7 @@ function update_choropleth () {
 	} /* for records */
 	prev_regiocolors=new_regiocolors;
 
-	var d=datesel_asdate;
+	var d=datesel;
 	console.log(d, typeof(d));
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
@@ -292,15 +305,29 @@ function update_selectie () {
 
 
 function update_ts_sel () {
-	$("#ts_line").remove();	
-	canvas.append("line")
-  		.attr("id","ts_line")
-  		.attr("x1",xScale(datesel_asdate))
-  		.attr("x2",xScale(datesel_asdate))
-  		.attr("y1",yScale(miny))
-  		.attr("y2",yScale(maxy))
-  		.attr("stroke-width", 1)
-  		.attr("stroke", 'red');
+	$("#ts_line_a").remove()
+	$("#ts_line_b").remove();	;	
+	if (datesel_a!=null) {
+		canvas.append("line")
+  			.attr("id","ts_line_a")
+  			.attr("x1",xScale(datesel_a))
+  			.attr("x2",xScale(datesel_a))
+  			.attr("y1",yScale(miny))
+  			.attr("y2",yScale(maxy))
+  			.attr("stroke-width", 1)
+  			.attr("stroke", 'red');
+  		}
+  	if (datesel_b!=null) {
+		canvas.append("line")
+  			.attr("id","ts_line_b")
+  			.attr("x1",xScale(datesel_b))
+  			.attr("x2",xScale(datesel_b))
+  			.attr("y1",yScale(miny))
+  			.attr("y2",yScale(maxy))
+  			.attr("stroke-width", 1)
+  			.attr("stroke", 'blue');
+  		}
+
 
   	}
 
@@ -428,7 +455,7 @@ var line=d3.svg.line()
 	}
 
 
- 	d3.select("#svg_ts").on('click', click_date);
+ 	d3.select("#svg_ts").on('click', click_ts);
  	$('#ts_label').remove();
 
  	var ts_label=regio_label2key[regiosel];
@@ -449,6 +476,19 @@ var line=d3.svg.line()
 }
 
 
+function change_tab () {
+	$('.tab').removeClass('active_selectie');
+	$(this).addClass('active_selectie');
+	tabsel=$(this).attr('data-tab');
+	if (tabsel=='a') {
+		datesel=datesel_a;		
+	}
+	if (tabsel=='b') {
+		datesel=datesel_b;		
+	}
+
+	update_choropleth();
+}
 
 
 
@@ -477,7 +517,7 @@ function setup_vars () {
 
 function movie_begin () {
 	datesel=dates[0];
-	datesel_asdate=convert_date(datesel);
+	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
 	update_ts_sel();
@@ -486,7 +526,7 @@ function movie_begin () {
 
 function movie_last () {
 	datesel=dates[dates.length-1];
-	datesel_asdate=convert_date(datesel);
+	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
 	update_ts_sel();
@@ -498,7 +538,7 @@ function movie_next () {
 	if (nextdate>=dates.length)
 		nextdate=dates.length;
 	datesel=dates[nextdate];
-	datesel_asdate=convert_date(datesel);
+	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
 	update_ts_sel();
@@ -510,7 +550,7 @@ function movie_prev () {
 	if (nextdate<0)
 		nextdate=0;	
 	datesel=dates[nextdate];
-	datesel_asdate=convert_date(datesel);
+	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
 	update_ts_sel();
@@ -537,7 +577,7 @@ function movie_nextframe() {
 		return;
 	}
 	datesel=dates[dateindex];	
-	datesel_asdate=convert_date(datesel);
+	//datesel_asdate=convert_date(datesel);
 	update_choropleth();
 	update_ts_sel();
 	setTimeout (movie_nextframe,10);		
@@ -560,6 +600,7 @@ function init_movie_ui () {
 	$('#m_next').on('click',movie_next);
 	$('#m_last').on('click',movie_last);
 }
+
 
 
 
@@ -589,6 +630,14 @@ function init_svg(){
     $('#patch_5').remove();
     $('#patch_6').remove();
 
+// tab init
+	tabsel='a';
+    $('.tab').on('click',change_tab);
+    $('#tab_a').addClass('active_selectie');
+    $('.tab').on('mouseenter ',enter_selectie);
+	$('.tab').on('mouseout ',leave_selectie);
+
+// selectie init
     if (('key' in var_types) && (country_labels.length>0))  {    	
 		$('#keyentry').typeahead({source:country_labels,  valueKey: "Country"});
 		$('#keyentry').on('change',update_selectie);
