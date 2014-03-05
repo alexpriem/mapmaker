@@ -105,7 +105,7 @@ function change_var () {
 	minval=var_min[varidx];	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
-	update_choropleth();	
+	update_choropleth();
 	update_ts();	
 	return false;
 }
@@ -482,7 +482,12 @@ var line=d3.svg.line()
 	
 	xdata=[];
 	ydata=[];
+	if (!(regiosel in regio_ts)) {
+		console.log("bailout, no regiodata");
+		return;
+	}
 	regioreeks=regio_ts[regiosel];
+
 
 	for (i=0; i<regioreeks.length; i++) xdata.push(regioreeks[i][0]);  
 	for (i=0; i<regioreeks.length; i++) ydata.push(regioreeks[i][1]);  
