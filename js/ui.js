@@ -4,7 +4,7 @@ var regio_ts_max={};
 var tabsel;
 var datesel_a=null;
 var datesel_b=null;
-var datesel=0;
+var datesel=null;
 var regiosel=0;
 var varsel=varnames[2];
 
@@ -95,10 +95,12 @@ function click_regio(evt) {
 
 function change_var () {
 
-/* todo: cleanup  + handle multipolygons */
-	
 	varsel=$(this).attr('data-varname');
 	console.log('change_var:',varsel);
+
+	$('.varname').removeClass('active_selectie');
+	$(this).addClass('active_selectie');	
+	
 	varidx=varnames.indexOf(varsel);
 	minval=var_min[varidx];	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
@@ -193,6 +195,10 @@ function update_choropleth () {
 	var records, color, colorstring;
 
 
+	if (datesel==null) {
+		console.log("bailout, datesel=null");
+		return;
+	}
 // voor entry: datesel bevat  huidige datumkeuze uit tab.
 
 	chart=d3.select("#chart_svg");
@@ -213,6 +219,42 @@ function update_choropleth () {
 
 	console.log("day/regio/var",datesel,regiosel,varsel, varidx);
 	records=data.length;	
+
+	regioidx=1;
+	dateidx=0;
+	dataslice=data;
+
+	if (tabsel=='a-b') {
+		dataslice=[];
+		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
+
+		start_row_a=date_index[datesel_a].start_row;
+		start_row_b=date_index[datesel_b].start_row;
+		eind_row_a=date_index[datesel_a].eind_row;
+		eind_row_b=date_index[datesel_b].eind_row;
+		rownr_a=start_row_a;
+		rownr_b=start_row_b;
+		while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
+			if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
+				val=data[rownr_a][varidx];
+				rownr_a++;
+			}
+			if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
+				val=data[rownr_b][varidx];
+				rownr_b++;
+			}
+			if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
+				val=data[rownr_a][varidx]-data[rownr_b][varidx];
+				rownr_a++;
+				rownr_b++;
+			}
+		val=data[rownr][varidx];	
+		dataslice.push([data[rownr], val]);		
+		}
+	}
+
+
+
 	start_row=date_index[datesel].start_row;
 	eind_row=date_index[datesel].eind_row;
 	console.log("start:end",start_row, eind_row);
@@ -220,7 +262,7 @@ function update_choropleth () {
 	chart_min=data[0][varidx];  // chart minimum/maximum init.
 	chart_max=data[0][varidx];
 	for (rownr=start_row; rownr<eind_row; rownr++){	
-		row=data[rownr];
+		row=dataslice[rownr];
 		if (row[0]!=datesel) {
 			console.log("error-update choropleth", start_row, eind_row);
 			}
@@ -502,17 +544,16 @@ function setup_vars () {
 		console.log(var_types[i]);
 		if (var_types[i]=='data'){
 			var varname=varnames[i];
-			html+='<li data-varname="'+varname+'" class="varname">'+varname  + '</li>';
+			html+='<li id="v_'+varname+'" data-varname="'+varname+'" class="varname">'+varname  + '</li>';
 		}	
 	}
 	
 
+	$('#varlist').html(html);
+	$('.varname').on('click',change_var);	
 	$('.varname').on('mouseenter ',enter_selectie);
 	$('.varname').on('mouseout ',leave_selectie);
-
-
-	$('#varlist').html(html);
-	$('.varname').on('click',change_var);
+	$('#v_'+varsel).addClass('active_selectie');
 }
 
 function movie_begin () {
