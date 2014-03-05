@@ -134,6 +134,7 @@ function prep_data () {
 	regiocol=var_types.indexOf("regio");
 	datecol=var_types.indexOf("date");
 	varidx=varnames.indexOf(varsel);
+	keyidx=varnames.indexOf("key");	
 	datamin=data[0][varidx];
 	datamax=data[0][varidx];
 
@@ -149,6 +150,9 @@ function prep_data () {
 		row=data[i];
 		d=row[datecol];
 		regio=row[regiocol];		
+		if (keyidx>=0) {					
+			if (row[keyidx]!=keysel) continue;
+		}
 
 		val=row[varidx];
 		if (d-prevd!=0)  {			 // stupid javascript unable to compare dates
@@ -475,7 +479,7 @@ function update_ts () {
 	
 
 var line=d3.svg.line()
-	.interpolate("monotone") 
+//	.interpolate("monotone") 
 	.x(function(d,i)  { return xScale(xdata[i]); })
 	.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
 
@@ -564,6 +568,12 @@ function setup_vars () {
 function movie_begin () {
 	datesel=dates[0];
 	//datesel_asdate=convert_date(datesel);
+	if (tabsel=='a') { 
+		datesel_a=datesel;
+	} 
+	if (tabsel=='b') {
+		datesel_b=datesel;
+	}
 	console.log ("date set to:",datesel);
 	update_choropleth();
 	update_ts_sel();
@@ -572,6 +582,12 @@ function movie_begin () {
 
 function movie_last () {
 	datesel=dates[dates.length-1];
+	if (tabsel=='a') { 
+		datesel_a=datesel;
+	} 
+	if (tabsel=='b') {
+		datesel_b=datesel;
+	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
@@ -584,6 +600,12 @@ function movie_next () {
 	if (nextdate>=dates.length)
 		nextdate=dates.length;
 	datesel=dates[nextdate];
+	if (tabsel=='a') { 
+		datesel_a=datesel;
+	} 
+	if (tabsel=='b') {
+		datesel_b=datesel;
+	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
@@ -596,6 +618,12 @@ function movie_prev () {
 	if (nextdate<0)
 		nextdate=0;	
 	datesel=dates[nextdate];
+	if (tabsel=='a') { 
+		datesel_a=datesel;
+	} 
+	if (tabsel=='b') {
+		datesel_b=datesel;
+	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
@@ -622,7 +650,13 @@ function movie_nextframe() {
 		stop_player=true;
 		return;
 	}
-	datesel=dates[dateindex];	
+	datesel=dates[dateindex];
+	if (tabsel=='a') { 
+		datesel_a=datesel;
+	} 
+	if (tabsel=='b') {
+		datesel_b=datesel;
+	}
 	//datesel_asdate=convert_date(datesel);
 	update_choropleth();
 	update_ts_sel();
