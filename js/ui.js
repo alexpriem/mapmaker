@@ -194,6 +194,30 @@ function prep_data () {
 
 
 
+/* zet waarde van shape, reken waarde eerst om naar kleur */
+
+function set_shape_color_by_value (regio, val) {
+			colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
+			if (colorindex<0) colorindex=0;
+			if (colorindex>=gradsteps) colorindex=gradsteps-1;			
+			colorindex=parseInt(colorindex);
+
+				//console.log(minval, maxval, colorindex);
+			color=colormap[colorindex];					
+			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
+				//console.log('#r'+key+'_1',s);
+			el_ids=shape_ids[regio];				
+			if (typeof(el_ids)!="undefined") {
+				for (i=0; i<el_ids.length; i++) {
+					el_id='#'+el_ids[i];						
+					$(el_id).css('fill',colorstring).css('color',colorstring);
+					}		// for  
+				} else {
+					console.log("undefined regio:", regio);
+			} 													
+}
+
+
 function update_choropleth () {
 
 	var records, color, colorstring;
@@ -263,54 +287,48 @@ function update_choropleth () {
 	eind_row=date_index[datesel].eind_row;
 	console.log("start:end",start_row, eind_row);
 	new_regiocolors={};
+	for (i=0; i<regio_keys.length; i++) {
+		new_regiocolors[regio_keys[i]]=0;
+	}
+	
 	chart_min=data[0][varidx];  // chart minimum/maximum init.
 	chart_max=data[0][varidx];
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=dataslice[rownr];
-		if (row[0]!=datesel) {
-			console.log("error-update choropleth", start_row, eind_row);
+		if ((row[0]-datesel)!=0) {
+			console.log("error-update choropleth", row[0],datesel, start_row, eind_row);
 			}
 		var regio=row[1];			
 		val=row[varidx];			
 	//	console.log(regio, val);				
-		prev_val=prev_regiocolors[regio];   // kleur zetten als - nieuwe waarde !=0
-		                                    // oude waarde ongelijk vorige waarde
-		                                    // 
-		if ((val!=0) || ((typeof(prev_val)!="undefined") && (val!=prev_val))) {
-			if (val!=0) {
-				new_regiocolors[regio]=val;
-			}
+		prev_val=prev_regiocolors[regio];   // kleur zetten als 
+		                                    // nieuwe waarde ongelijk vorige waarde
+		                                    
+		if ((val!=prev_val)) {			
+			//console.log('regio,p,v',regio,prev_val,val);
+			new_regiocolors[regio]=val;			
 			if (val<chart_min) { 
 				chart_min=val;
 			}
 			if (val>chart_max) {
 				chart_max=val;
 			}
-			val=color_transform(val);
-		//console.log(val);
-			//colorindex=parseInt(gradsteps*(val-tminval)/(1.0*(tmaxval-tminval)));	
-
-			colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
-			if (colorindex<0) colorindex=0;
-			if (colorindex>=gradsteps) colorindex=gradsteps-1;			
-			colorindex=parseInt(colorindex);
-
-				//console.log(minval, maxval, colorindex);
-			color=colormap[colorindex];					
-			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
-				//console.log('#r'+key+'_1',s);
-			el_ids=shape_ids[regio];				
-			if (typeof(el_ids)!="undefined") {
-
-				for (i=0; i<el_ids.length; i++) {
-					el_id='#'+el_ids[i];						
-					$(el_id).css('fill',colorstring).css('color',colorstring);
-					}		// for  
-				} else {
-					console.log("undefined regio:", regio);
-			} 													
+			val=color_transform(val);		
+			set_shape_color_by_value (regio,val);
 		}
 	} /* for records */
+
+	Object.keys(prev_regiocolors).forEach(
+		function (regiokey) {			
+			prev_val=prev_regiocolors[regiokey];
+			val=new_regiocolors[regiokey];
+		//	console.log("Prev_regio",regiokey,prev_val,val);
+			if ((typeof(val)=='undefined') || (val==0)) {
+				//console.log('undefined, dus wissen:',regiokey, val,prev_val)
+				set_shape_color_by_value (regiokey, 0);
+			}
+		}		
+	);
 	prev_regiocolors=new_regiocolors;
 
 	var d=datesel;
@@ -329,10 +347,7 @@ function update_choropleth () {
   		.attr("font-size", "16px")
   		.attr("font-weight", "bold")
         .text(datelabel);
-
-
-	
-	   
+   
 }
 
 
@@ -702,6 +717,10 @@ function init_svg(){
 	h=svg.getAttributeNS(null,'height');
 	chart_height=h.slice(0,h.length-2);
 
+
+	for (i=0; i<regio_keys.length; i++) {
+		prev_regiocolors[regio_keys[i]]=0;
+	}
 	
 	$('#patch_1').remove();
 	$('#patch_2').remove();
