@@ -318,8 +318,7 @@ function update_choropleth () {
 		}
 	} /* for records */
 
-	Object.keys(prev_regiocolors).forEach(
-		function (regiokey) {			
+	for (var regiokey in prev_regiocolors) {
 			prev_val=prev_regiocolors[regiokey];
 			val=new_regiocolors[regiokey];
 		//	console.log("Prev_regio",regiokey,prev_val,val);
@@ -327,8 +326,7 @@ function update_choropleth () {
 				//console.log('undefined, dus wissen:',regiokey, val,prev_val)
 				set_shape_color_by_value (regiokey, 0);
 			}
-		}		
-	);
+		}			
 	prev_regiocolors=new_regiocolors;
 
 	var d=datesel;
