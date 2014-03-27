@@ -83,12 +83,13 @@ function init_colormap_inputs() {
 	if 	(typeof(SVGForeignObjectElement)!== 'undefined') {
 		$('.ie_fallback').remove();
 		var chart = d3.select("#chart1");
-		var svg=document.getElementById('chartdiv').children[0];
+		var svg=document.getElementById('chartbox1').children[0];
 		w=svg.getAttributeNS(null,'width');		
 		var imgwidth=parseInt(w.slice(0,w.length-2));
 		console.log('imgwidth:',imgwidth);
 	//	svg.setAttributeNS(null,'width',(imgwidth+200)+'pt');
-
+		
+		
 		offsetx=200;
 		chart.append("foreignObject")
 		  .attr("width", 150)
@@ -137,8 +138,9 @@ console.log("draw_colormap", colormaplength);
 $('.colormap').remove();
 var barlength=chart_height/3;
 var barstep=(barlength/gradsteps);
+var chart = d3.select("#chart1");
 console.log(barlength, barstep);
-var svg=document.getElementById('chartdiv').children[0];
+var svg=document.getElementById('chartbox2').children[0];
 w=svg.getAttributeNS(null,'width');		
 var imgwidth=parseInt(w.slice(0,w.length-2));
 

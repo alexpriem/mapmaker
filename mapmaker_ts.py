@@ -63,10 +63,10 @@ class mapmaker:
                        color=bordercolor,
                        linewidth=borderwidth)
             for il, element in enumerate(h):
-                element.set_gid ("r%d_1" % regio_id)
+                element.set_gid ("a%d_1" % regio_id)
             for il, element in enumerate(l):
                 element.set_gid ("l%d_1" % regio_id )
-            return ["r%d_1" % regio_id]
+            return ["a%d_1" % regio_id]
         else:
             j=1
             regs=[]
@@ -77,11 +77,11 @@ class mapmaker:
                             color=bordercolor,
                             linewidth=borderwidth)            
                 for il, element in enumerate(h):
-                    element.set_gid ("r%d_%d" % (regio_id,j) )   # polylines gaan niet goed
+                    element.set_gid ("a%d_%d" % (regio_id,j) )   # polylines gaan niet goed
                 
                 for il, element in enumerate(l):
                     element.set_gid ("l%d_%d" % (regio_id,j) )                
-                regs.append("r%d_%d" % (regio_id, j))                
+                regs.append("a%d_%d" % (regio_id, j))                
                 j+=1            
             return regs
 
@@ -454,6 +454,7 @@ class mapmaker:
             child.set('class',"outline")
             child.set('data-regio',r[1:].split('_')[0])            
             child.set('id',r)
+           # child.attrib.pop("style")  # inline style verwijderen-- performanceissue?
             el.attrib.pop("id")
             #sys.exit()
             
@@ -463,6 +464,11 @@ class mapmaker:
             line='l'+r[1:]    
             el = xmlid[line]  # lookup regio_id  in xml        
             el.set('class', "border")
+            ochildren=el.findall("*")
+            ochild=ochildren[0]
+            ochild.attrib.pop("clip-path")
+           # ochild.attrib.pop("style")
+            
        
         del (xmlid['patch_1'])
         del (xmlid['patch_2'])
@@ -471,8 +477,12 @@ class mapmaker:
         #del (xmlid['patch_5'])
         
         root=el.find("..")        
-        ET.ElementTree(tree).write(outfile+'.svg')        
+        ET.ElementTree(tree).write(outfile+'.svg')
+        
+        for regio,shapes in regio_ids.items():
+            regio_ids[regio]=[shape[1:] for shape in shapes]
         s=json.dumps(regio_ids);
+        
         f=open("js/shape_ids.js",'w')
         f.write("var shape_ids=");
         f.write(s);
@@ -549,7 +559,7 @@ class mapmaker:
         body=html.split("<body>")
         body=body[1]
         svg=open(outfile+'.svg','r').read()                        
-        body=body.replace('<svg> </svg>',svg)
+        body=body.replace('<svg > </svg>',svg)
         f.write("</head>\n")
         f.write("<body>\n")
         f.write(body)

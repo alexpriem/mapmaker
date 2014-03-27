@@ -4,6 +4,7 @@ var regio_ts_max={};
 var tabsel;
 var datesel_a=null;
 var datesel_b=null;
+var datesel_c=null;
 var datesel=null;
 var regiosel=0;
 var varsel=varnames[2];
@@ -11,7 +12,7 @@ var varsel=varnames[2];
 
 var use_regiomin=true;
 var color=[];
-var canvas;
+var canvas={};
 var chart;
 var chart_width=0;
 var chart_height=0;
@@ -24,11 +25,12 @@ var chart_ypos=100;
 
 var ts_xpos=400;  // label position
 var ts_ypos=10;
-var prev_regiocolors={};
+chartnames=['a','b','c'];
+var prev_chartcolors={};
 var datamin;
 var datamax;
 
-var current_ts=1;
+var current_ts='a';
 
 ts_width=400;
 ts_height=200;
@@ -44,7 +46,8 @@ var MonthName = [ "January", "February", "March", "April", "May", "June",
 
 function click_ts () {
 	
-	
+	console.log(this.id);
+	current_ts=this.id.slice(this.id.length-1);
 	xpos=d3.mouse(this)[0];
 
 	console.log(xpos, xScale.invert(xpos));
@@ -68,16 +71,16 @@ function click_ts () {
   		}
   	}
   	datesel=mind;  	
-	if (tabsel=='a') {
+	if (current_ts=='a') {
 		datesel_a=mind;		
 	}
-	if (tabsel=='b') {
+	if (current_ts=='b') {
 		datesel_b=mind;		
 	}
 
 	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
 	console.log(datesel,datesel_a,datesel_b);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -107,7 +110,7 @@ function change_var () {
 	minval=var_min[varidx];	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts(current_ts);	
 	return false;
 }
@@ -198,33 +201,36 @@ function prep_data () {
 
 /* zet waarde van shape, reken waarde eerst om naar kleur */
 
-function set_shape_color_by_value (regio, val) {
-			colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
-			if (colorindex<0) colorindex=0;
-			if (colorindex>=gradsteps) colorindex=gradsteps-1;			
-			colorindex=parseInt(colorindex);
+function set_shape_color_by_value (chartname, regio, val) {
 
-				//console.log(minval, maxval, colorindex);
-			color=colormap[colorindex];					
-			colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
-				//console.log('#r'+key+'_1',s);
-			el_ids=shape_ids[regio];				
-			if (typeof(el_ids)!="undefined") {
-				for (i=0; i<el_ids.length; i++) {
-					el_id='#'+el_ids[i];						
-					$(el_id).css('fill',colorstring).css('color',colorstring);
-					}		// for  
-				} else {
-					console.log("undefined regio:", regio);
-			} 													
+//	console.log('set_shape_color_by_value:',chartname,regio,val);
+	colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
+	if (colorindex<0) colorindex=0;
+	if (colorindex>=gradsteps) colorindex=gradsteps-1;			
+	colorindex=parseInt(colorindex);
+
+		//console.log(minval, maxval, colorindex);
+	color=colormap[colorindex];					
+	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
+		//console.log('#r'+key+'_1',s);
+	el_ids=shape_ids[regio];				
+	if (typeof(el_ids)!="undefined") {
+		for (i=0; i<el_ids.length; i++) {
+			el_id='#'+chartname+el_ids[i];						
+			$(el_id).css('fill',colorstring).css('color',colorstring);
+			}		// for  
+		} else {
+			console.log("undefined regio:", regio);
+	} 													
 }
 
 
-function update_choropleth () {
+function update_choropleth (chartname) {
 
 	var records, color, colorstring;
 
 
+	console.log('update_choropleth:',chartname);
 	if (datesel==null) {
 		console.log("bailout, datesel=null");
 		return;
@@ -284,6 +290,8 @@ function update_choropleth () {
 	}
 
 
+	prev_regiocolors=prev_chartcolors[chartname];
+
 
 	start_row=date_index[datesel].start_row;
 	eind_row=date_index[datesel].eind_row;
@@ -316,7 +324,7 @@ function update_choropleth () {
 				chart_max=val;
 			}
 			val=color_transform(val);		
-			set_shape_color_by_value (regio,val);
+			set_shape_color_by_value (chartname, regio,val);
 		}
 	} /* for records */
 
@@ -326,10 +334,10 @@ function update_choropleth () {
 		//	console.log("Prev_regio",regiokey,prev_val,val);
 			if ((typeof(val)=='undefined') || (val==0)) {
 				//console.log('undefined, dus wissen:',regiokey, val,prev_val)
-				set_shape_color_by_value (regiokey, 0);
+				set_shape_color_by_value (chartname,regiokey, 0);
 			}
 		}			
-	prev_regiocolors=new_regiocolors;
+	prev_chartcolors[chartname]=new_regiocolors;
 
 	var d=datesel;
 	console.log(d, typeof(d));
@@ -358,18 +366,19 @@ function update_selectie () {
 	selected_keyid=key2id[selected_keylabel];
 	console.log ('selectie=',selected_keyid);
 
-	update_choropleth ();	
+	update_choropleth (current_ts);	
 	update_ts(current_ts);	
 }
 
 
 
 
-function update_ts_sel () {
-	$("#ts_line_a").remove()
-	$("#ts_line_b").remove();	;	
+function update_ts_sel (current_ts) {
+	$("#ts_line_a").remove();
+	$("#ts_line_b").remove();		
+	$("#ts_line_c").remove();
 	if (datesel_a!=null) {
-		canvas.append("line")
+		canvas['a'].append("line")
   			.attr("id","ts_line_a")
   			.attr("x1",xScale(datesel_a))
   			.attr("x2",xScale(datesel_a))
@@ -379,10 +388,20 @@ function update_ts_sel () {
   			.attr("stroke", 'red');
   		}
   	if (datesel_b!=null) {
-		canvas.append("line")
+		canvas['b'].append("line")
   			.attr("id","ts_line_b")
   			.attr("x1",xScale(datesel_b))
   			.attr("x2",xScale(datesel_b))
+  			.attr("y1",yScale(miny))
+  			.attr("y2",yScale(maxy))
+  			.attr("stroke-width", 1)
+  			.attr("stroke", 'blue');
+  		}
+	if (datesel_c!=null) {
+		canvas['c'].append("line")
+  			.attr("id","ts_line_c")
+  			.attr("x1",xScale(datesel_c))
+  			.attr("x2",xScale(datesel_c))
   			.attr("y1",yScale(miny))
   			.attr("y2",yScale(maxy))
   			.attr("stroke-width", 1)
@@ -399,8 +418,8 @@ function update_ts (ts_nr) {
 
  var svg_ts='#svg_ts'+ts_nr;
  $(svg_ts).remove();
- $('#svg_line').remove();
- canvas = d3.select("#ts"+ts_nr)
+ $('#ts_line_'+ts_nr).remove();
+ cv=canvas[ts_nr] = d3.select("#ts_"+ts_nr)
     		.append("svg")
     		.attr('xmlns',"http://www.w3.org/2000/svg")
     		.attr('id','svg_ts'+ts_nr)            
@@ -460,32 +479,32 @@ function update_ts (ts_nr) {
 
 /* place axis & grids */
 
-   canvas.append("g")
+   cv.append("g")
     		.attr("class","grid")
     		.attr("transform","translate(0,"+(ts_height-50)+")")
     		.call(xGrid);
-   canvas.append("g")
+   cv.append("g")
     		.attr("class","grid")
     		.attr("transform","translate(50,0)")
 			.call(yGrid);
 
-   canvas.append("g")
+   cv.append("g")
     		.attr("class","xaxis")
     		.attr("transform","translate(0,"+(ts_height-50)+")")
     		.call(xAxis);
-   canvas.append("g")
+   cv.append("g")
     		.attr("class","yaxis")
     		.attr("transform","translate(50,0)")
     		.call(yAxis);
 
 /* xas / yas labels */
-    canvas.append("text")
+    cv.append("text")
     	.attr("class", "label")
     	.attr("y", ts_height-10)
     	.attr("x", ts_width/2)    	
     	.text(xlabel);
 
-    canvas.append("text")
+    cv.append("text")
     	.attr("class", "label")
     	.attr("x", 0)
     	.attr("y", 0)    	
@@ -514,7 +533,7 @@ var line=d3.svg.line()
 
 	console.log('daydata:',regioreeks[1]);
 	for (i=1; i<regioreeks.length; i++) {    		
-		canvas.append("svg:path")
+		cv.append("svg:path")
 			//.attr("id","l_"+day+"_"+month)
 			.attr("class","dayl")
 			.attr("d", line(ydata));
@@ -528,7 +547,7 @@ var line=d3.svg.line()
  	var ts_label=regio_label2key[regiosel];
 
  	console.log('labelpos:',ts_xpos, ts_ypos);
-	canvas.append("text")      // text label for the x axis
+	cv.append("text")      // text label for the x axis
 		.attr("id","ts_label")
   		.attr("class","label")
         .attr("x", ts_xpos )
@@ -554,7 +573,7 @@ function change_tab () {
 		datesel=datesel_b;		
 	}
 
-	update_choropleth();
+	update_choropleth(current_ts);
 }
 
 
@@ -591,7 +610,7 @@ function movie_begin () {
 		datesel_b=datesel;
 	}
 	console.log ("date set to:",datesel);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -606,7 +625,7 @@ function movie_last () {
 	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -624,7 +643,7 @@ function movie_next () {
 	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -642,7 +661,7 @@ function movie_prev () {
 	}
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -674,7 +693,7 @@ function movie_nextframe() {
 		datesel_b=datesel;
 	}
 	//datesel_asdate=convert_date(datesel);
-	update_choropleth();
+	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	setTimeout (movie_nextframe,10);		
 	return false;	
@@ -709,10 +728,11 @@ function init_svg(){
 	$('#axes_1').on('click',click_regio);
 	window.document.title=label;
 
-	var chartdiv=document.getElementById('chartdiv');
+	var chartdiv=document.getElementById('chartbox1');
 	var chart1=chartdiv.children[0];
 	chart1.setAttribute("id","chart1");	
 	chart1.removeAttribute("viewBox");	
+
 	w=chart1.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
 	chart1.setAttributeNS(null,'width',(chart_width-175)+'pt');
@@ -731,15 +751,54 @@ function init_svg(){
 	
 	chart2 = chart1.cloneNode(true);
 	chart2.setAttribute("id","chart2");
-	$('#chartdiv').append(chart2);
+	$('#chartbox2').append(chart2);
+
+//	chart2=document.getElementById('chart2');
+	console.log(chart2);
+	var subnodes=chart2.childNodes;
+	/* this should not fail, 'figure_1' is always in the svg */	
+
+	el=chart2.firstElementChild;
+	while (el) {    	
+		if (el.getAttribute('id')=='figure_1') {
+				var fignode=el;
+				break;
+			}
+    	el = el.nextElementSibling;
+  	}
+
+	fignode.setAttribute('id','figure_2');
+	axisnode=fignode.firstElementChild;
+	groupnode=axisnode.firstElementChild
+	while (groupnode) {
+		var pathnode=groupnode.firstElementChild;
+		var pathid=pathnode.getAttribute('id');
+		if (pathid!=null) {
+			pathnode.setAttribute('id','b'+pathid.slice(1));
+		}
+		groupnode = groupnode.nextElementSibling;
+	}
+
+	//console.log(fignode.childNodes);
+	
+
+	
 	chart3 = chart1.cloneNode(true);
 	chart3.setAttribute("id","chart3");
-	$('#chartdiv').append(chart3);
+	$('#chartbox3').append(chart3);
 	//svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
 
-	for (i=0; i<regio_keys.length; i++) {
-		prev_regiocolors[regio_keys[i]]=0;
+	
+	for (i=chartnames.length; i--;) {
+		chartname=chartnames[i];
+		console.log()
+		prev_regiocolors={};
+		for (j=regio_keys.length; j--;) {		
+			prev_regiocolors[regio_keys[i]]=0;
+		}
+		prev_chartcolors[chartname]=prev_regiocolors;
 	}
+
 
 // tab init
 	tabsel='a';
@@ -767,10 +826,11 @@ function init_svg(){
 	if (var_types.indexOf('date')>=0) {
 		console.log('prep');
 		prep_data();		
-		update_choropleth();
-		update_ts (1);
-		update_ts (2);
-		update_ts (3);
+		update_choropleth('a');
+		update_choropleth('b');		
+		update_ts ('a');
+		update_ts ('b');
+		update_ts ('c');
 	}
 	
 
