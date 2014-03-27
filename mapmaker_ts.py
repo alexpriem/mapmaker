@@ -389,7 +389,12 @@ class mapmaker:
 
        
         fig = pyplot.figure(figsize=(7, 8),dpi=300)    
-        ax = fig.add_subplot(1,1,1)    
+        ax = fig.add_subplot(1,1,1)
+        ax.xaxis.set_visible(False)
+        ax.yaxis.set_visible(False)
+        fig.frameon=False
+        fig.patch.set_visible(False)
+        
         nonecounter=0
         regios=[]
         regio_ids={}
@@ -446,6 +451,7 @@ class mapmaker:
             child=children[0]   # altijd maar een child       
             child.attrib.pop("clip-path")
             child.set('class',"outline")
+            child.set('data-regio',r[1:].split('_')[0])            
             child.set('id',r)
             el.attrib.pop("id")
             #sys.exit()

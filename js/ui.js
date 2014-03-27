@@ -84,8 +84,9 @@ function click_ts () {
 function click_regio(evt) {
 
 	$('#svg_ts').remove();	
-	r=evt.target.id.split('_')[0];
-	regiosel=r.slice(1);
+	regiosel=evt.target.getAttribute('data-regio');
+	//r=evt.target.id.split('_')[0];
+	//regiosel=r.slice(1);
 	console.log('regio:',regiosel);
 	update_ts();
 
@@ -229,7 +230,7 @@ function update_choropleth () {
 	}
 // voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-	chart=d3.select("#chart_svg");
+	chart=d3.select("#chart1");
 
 	if (gradmax=='max') {
 		tgradmax=datamax;      // max is afhankelijk van keuze
@@ -706,19 +707,17 @@ function init_svg(){
 	$('#axes_1').on('click',click_regio);
 	window.document.title=label;
 
-	var svg=document.getElementById('chart').children[0];
-	svg.setAttribute("id","chart_svg");	
-	svg.removeAttribute("viewBox");	
-	w=svg.getAttributeNS(null,'width');
+	var chartdiv=document.getElementById('chartdiv');
+	var chart1=chartdiv.children[0];
+	chart1.setAttribute("id","chart1");	
+	chart1.removeAttribute("viewBox");	
+	w=chart1.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
-	svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
-	h=svg.getAttributeNS(null,'height');
+	chart1.setAttributeNS(null,'width',(chart_width-100)+'pt');
+	chart1.setAttributeNS(null,'padding',-50+'px');
+	h=chart1.getAttributeNS(null,'height');
 	chart_height=h.slice(0,h.length-2);
 
-
-	for (i=0; i<regio_keys.length; i++) {
-		prev_regiocolors[regio_keys[i]]=0;
-	}
 	
 	$('#patch_1').remove();
 	$('#patch_2').remove();
@@ -726,6 +725,19 @@ function init_svg(){
     $('#patch_4').remove();
     $('#patch_5').remove();
     $('#patch_6').remove();
+
+	
+	chart2 = chart1.cloneNode(true);
+	chart2.setAttribute("id","chart2");
+	$('#chartdiv').append(chart2);
+	chart3 = chart1.cloneNode(true);
+	chart3.setAttribute("id","chart3");
+	$('#chartdiv').append(chart3);
+	//svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
+
+	for (i=0; i<regio_keys.length; i++) {
+		prev_regiocolors[regio_keys[i]]=0;
+	}
 
 // tab init
 	tabsel='a';
