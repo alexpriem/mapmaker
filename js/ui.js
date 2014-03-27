@@ -28,8 +28,9 @@ var prev_regiocolors={};
 var datamin;
 var datamax;
 
+var current_ts=1;
 
-ts_width=650;
+ts_width=400;
 ts_height=200;
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
@@ -77,18 +78,18 @@ function click_ts () {
 	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
 	console.log(datesel,datesel_a,datesel_b);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	return false;
 }
 
 function click_regio(evt) {
 
-	$('#svg_ts').remove();	
+	$('#svg_ts'+current_ts).remove();	
 	regiosel=evt.target.getAttribute('data-regio');
 	//r=evt.target.id.split('_')[0];
 	//regiosel=r.slice(1);
 	console.log('regio:',regiosel);
-	update_ts();
+	update_ts(current_ts);
 
 	return false;
 }
@@ -107,7 +108,7 @@ function change_var () {
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
 	update_choropleth();
-	update_ts();	
+	update_ts(current_ts);	
 	return false;
 }
 
@@ -358,7 +359,7 @@ function update_selectie () {
 	console.log ('selectie=',selected_keyid);
 
 	update_choropleth ();	
-	update_ts();	
+	update_ts(current_ts);	
 }
 
 
@@ -393,15 +394,16 @@ function update_ts_sel () {
 
 
 
-function update_ts () {
+function update_ts (ts_nr) {
 
 
- $('#svg_ts').remove();
+ var svg_ts='#svg_ts'+ts_nr;
+ $(svg_ts).remove();
  $('#svg_line').remove();
- canvas = d3.select("#ts")
+ canvas = d3.select("#ts"+ts_nr)
     		.append("svg")
     		.attr('xmlns',"http://www.w3.org/2000/svg")
-    		.attr('id','svg_ts')            
+    		.attr('id','svg_ts'+ts_nr)            
             .attr("width", ts_width)
             .attr("height", ts_height);            
 	
@@ -520,7 +522,7 @@ var line=d3.svg.line()
 	}
 
 
- 	d3.select("#svg_ts").on('click', click_ts);
+ 	d3.select(svg_ts).on('click', click_ts);
  	$('#ts_label').remove();
 
  	var ts_label=regio_label2key[regiosel];
@@ -537,7 +539,7 @@ var line=d3.svg.line()
   		.attr("font-weight", "bold")
         .text(ts_label);
 
-  update_ts_sel();
+  update_ts_sel(ts_nr);
 }
 
 
@@ -590,7 +592,7 @@ function movie_begin () {
 	}
 	console.log ("date set to:",datesel);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	return false;
 }
 
@@ -605,7 +607,7 @@ function movie_last () {
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	return false;
 }
 
@@ -623,7 +625,7 @@ function movie_next () {
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	return false;
 }
 
@@ -641,7 +643,7 @@ function movie_prev () {
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	return false;
 }
 
@@ -673,7 +675,7 @@ function movie_nextframe() {
 	}
 	//datesel_asdate=convert_date(datesel);
 	update_choropleth();
-	update_ts_sel();
+	update_ts_sel(current_ts);
 	setTimeout (movie_nextframe,10);		
 	return false;	
 }
@@ -713,7 +715,7 @@ function init_svg(){
 	chart1.removeAttribute("viewBox");	
 	w=chart1.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
-	chart1.setAttributeNS(null,'width',(chart_width-100)+'pt');
+	chart1.setAttributeNS(null,'width',(chart_width-175)+'pt');
 	chart1.setAttributeNS(null,'padding',-50+'px');
 	h=chart1.getAttributeNS(null,'height');
 	chart_height=h.slice(0,h.length-2);
@@ -766,7 +768,9 @@ function init_svg(){
 		console.log('prep');
 		prep_data();		
 		update_choropleth();
-		update_ts ();
+		update_ts (1);
+		update_ts (2);
+		update_ts (3);
 	}
 	
 

@@ -266,7 +266,7 @@ $('#trans_'+transform).addClass('active_selectie');
  //for (colormapname in colormaps)  break;
  colormap=colormaps[colormapname](gradsteps);
  colormaplength=colormap.length-1;
- init_colormap_inputs();
+ //init_colormap_inputs();
  console.log('init_colormaps:',colormapname,colormaplength,gradsteps);
 
 }

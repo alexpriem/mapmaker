@@ -183,7 +183,7 @@ fill none;
   background:#fff;    /* center column background colour */
 }
 .threecol .colleft {
-  right:75%;      /* width of the middle column */
+  right:78%;      /* width of the middle column */
   background:#f4f4f4; /* left column background colour */
 }
 .threecol .col1 {
@@ -191,12 +191,12 @@ fill none;
   left:102%;      /* 100% plus left padding of center column */
 }
 .threecol .col2 {
-  width:5%;      /* Width of left column content (column width minus padding on either side) */
-  left:15%;     /* width of (right column) plus (center column left and right padding) plus (left column left padding) */
+  width:10%;      /* Width of left column content (column width minus padding on either side) */
+  left:18%;     /* width of (right column) plus (center column left and right padding) plus (left column left padding) */
 }
 .threecol .col3 {
   width:16%;      /* Width of right column content (column width minus padding on either side) */
-  left:94%;     /* Please make note of the brackets here:
+  left:95%;     /* Please make note of the brackets here:
           (100% - left column width) plus (center column left and right padding) plus (left column left and right padding) plus (right column left padding) */
 }
 
@@ -238,7 +238,11 @@ width: 50%;
 margin:0 auto;
 }
 
-# chart_svg{
+#chart_svg{
 display: block; 
 margin: 0 auto;
+}
+
+#ts1,#ts2, #ts3{
+display:inline;
 }

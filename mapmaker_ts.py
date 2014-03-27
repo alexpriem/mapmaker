@@ -392,8 +392,9 @@ class mapmaker:
         ax = fig.add_subplot(1,1,1)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
-        fig.frameon=False
-        fig.patch.set_visible(False)
+        fig.frameon=False        
+        for item in [fig, ax]:
+            item.patch.set_visible(False)
         
         nonecounter=0
         regios=[]
@@ -467,7 +468,7 @@ class mapmaker:
         del (xmlid['patch_2'])
         del (xmlid['patch_3'])
         del (xmlid['patch_4'])
-        del (xmlid['patch_5'])
+        #del (xmlid['patch_5'])
         
         root=el.find("..")        
         ET.ElementTree(tree).write(outfile+'.svg')        
