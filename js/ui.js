@@ -87,13 +87,13 @@ function click_ts () {
 
 function click_regio(evt) {
 
-	$('#svg_ts'+current_ts).remove();	
 	regiosel=evt.target.getAttribute('data-regio');
-	//r=evt.target.id.split('_')[0];
-	//regiosel=r.slice(1);
-	console.log('regio:',regiosel);
-	update_ts(current_ts);
+	var clickedregio=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
+	current_ts=clickedregio.slice(0,1);
+	console.log('click_regio:',clickedregio,regiosel, current_ts);
 
+	$('#svg_ts'+current_ts).remove();		
+	update_ts(current_ts);
 	return false;
 }
 
@@ -726,6 +726,7 @@ function init_svg(){
 
 	$('#headertxt').html('<b>'+ label+ '</b>');
 	$('#axes_1').on('click',click_regio);
+	
 	window.document.title=label;
 
 	var chartdiv=document.getElementById('chartbox1');
@@ -769,6 +770,7 @@ function init_svg(){
 
 	fignode.setAttribute('id','figure_2');
 	axisnode=fignode.firstElementChild;
+	axisnode.setAttribute('id','axes_2');
 	groupnode=axisnode.firstElementChild
 	while (groupnode) {
 		var pathnode=groupnode.firstElementChild;
@@ -779,6 +781,8 @@ function init_svg(){
 		groupnode = groupnode.nextElementSibling;
 	}
 
+
+	$('#axes_2').on('click',click_regio);
 	//console.log(fignode.childNodes);
 	
 
