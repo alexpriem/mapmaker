@@ -304,6 +304,18 @@ class mapmaker:
         g.write('var data=[\n')
         regiolabels={}
         keylabels={}
+
+
+        total_regio={}
+        total_date={}
+        date_keys={}
+        if keycol is not None:
+            for key in keys.values():
+                total_regio_key[key]={}
+                total_date_key[key]={}
+
+
+        
         for line in f.readlines():        
             g.write(line_out)
             cols=line.strip().split(sep)
@@ -317,12 +329,13 @@ class mapmaker:
             if (datecol is not None):
                 date=cols[datecol]
                 d=dateutil.parser.parse(date)
+                js_date="new Date('"+d.isoformat()+"')"
                 if mindatestr is None or d<mindate:
                     mindate=d
-                    mindatestr=date
+                    mindatestr=js_date
                 if maxdatestr is None or d>maxdate:
                     maxdate=d
-                    maxdatestr=date
+                    maxdatestr=js_date
                 #line_out+=date+","
                 
                 line_out+="new Date('"+date.replace(' ','T')+"'),"
@@ -335,22 +348,76 @@ class mapmaker:
             line_out+=','.join([cols[col] for col in datacols])
             line_out+='],\n'
             #print line_out
+            numdatacols=len(datacols)
             for i,col in enumerate(datacols):
                 val=float(cols[col])
                 if var_min[i] is None or val<var_min[i]:
                     var_min[i]=val
                 if var_max[i] is None or val>var_max[i]:
                     var_max[i]=val
+
+                if not(regio in total_regio):
+                    total_regio[regio]=[0]*numdatacols
+                if not(js_date in total_date):
+                    total_date[js_date]=[0]*numdatacols
+                    date_keys[d]=0
+
+                # aggegraten over dataset bepalen
+                # naar regio, date
+                # en naar key x regio, key x date
+                total_regio[regio][i]+=val
+                total_date[js_date][i]+=val
+                if keycol is not None:
+                    if not(regio in total_regio_key[key]):
+                        total_regio_key[key][regio]=[0]*numdatacols                    
+                    if not(date in total_date_key[key]):
+                        total_date_key[key][js_date]=[0]*numdatacols
+                    total_regio_key[key][regio][i]+=val
+                    total_date_key[key][js_date][i]+=val
+                    
+
+                                
+
+
                 
         var_min.insert(0,0)
         var_max.insert(0,0)
         if datecol is not None:
-            var_min.insert(0,"new Date('"+mindatestr.replace(' ','T')+"')")         # min /max datum invoegen?
-            var_max.insert(0,"new Date('"+maxdatestr.replace(' ','T')+"')")
+            var_min.insert(0,mindatestr)         # min /max datum invoegen?
+            var_max.insert(0,maxdatestr)
             
-            
+
+                    
         line_out=line_out[:-2]
         g.write(line_out+'];\n')
+        
+        #
+        s=json.dumps(total_regio)    
+        g.write('\n\nvar total_regio='+s+';\n')
+        # datum sorteren voor tijdreeks.
+        total_date=sorted(total_date.items())
+        s=json.dumps(total_date)
+        # date-step bepalen
+        date_keys=sorted(date_keys.keys())
+        for i,val in enumerate(date_keys[1:]):
+            dk=date_keys[i-1]-date_keys[i]            
+            ms=dk.days*24*3600*1000+dk.seconds*1000 # to milliseconds
+            
+        g.write('\n\nvar datestep_ms=%d;' % ms)
+        
+        
+        
+
+        
+        g.write('\n\nvar total_date='+s+';\n')
+        if keycol is not None:
+            s=json.dumps(total_regio_key)
+            g.write('\n\nvar total_regio_key='+s+';\n')
+            for key in keys.values():
+                total_date_key[key]=sorted(total_date_key[key].items())
+            s=json.dumps(total_date_key)
+            g.write('\n\nvar total_date_key='+s+';\n')
+
         f.close()
 
         if csvdir:
