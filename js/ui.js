@@ -2,10 +2,7 @@ var regio_ts={};
 var regio_ts_min={};
 var regio_ts_max={};
 var tabsel;
-var datesel_a=null;
-var datesel_b=null;
-var datesel_c=null;
-var datesel=null;
+var datesel={};
 var regiosel=0;
 var varsel=varnames[2];
 
@@ -29,7 +26,7 @@ var ts_height=200;
 
 var ts_xpos=ts_width/2;  // label position
 var ts_ypos=10;
-chartnames=['a','b','c'];
+var chartnames=['a','b','c'];
 var prev_chartcolors={};
 var datamin;
 var datamax;
@@ -53,35 +50,28 @@ function click_ts () {
 	xpos=d3.mouse(this)[0];
 
 	console.log(xpos, xScale.invert(xpos));
-	newdate=xScale.invert(xpos);		
-	datesel=newdate;
-
-
+	currentdate=xScale.invert(xpos);		
+	
 // d3 calculates dates according to exact position, so we have to lookup the nearest date in our data. 
 // Faster but trickier solution would be to use rounding. This is guaranteed to work, but slower.
 
 	mind=data[0][0];
-	mindiff=Math.abs(datesel-mind);
+	mindiff=Math.abs(currentdate-mind);
 	for (var d in date_index) {
   		if (date_index.hasOwnProperty(d)) {
   			var d2=new Date(d);
   			//console.log('datediff:',  Math.abs(datesel-d2), mindiff, mind);
-  			if (Math.abs(datesel-d2)<mindiff) {
-  				mindiff=Math.abs(datesel-d2);
+  			if (Math.abs(currentdate-d2)<mindiff) {
+  				mindiff=Math.abs(currentdate-d2);
   				mind=d2;
   			}
   		}
   	}
-  	datesel=mind;  	
-	if (current_ts=='a') {
-		datesel_a=mind;		
-	}
-	if (current_ts=='b') {
-		datesel_b=mind;		
-	}
-
+  	
+  	datesel[current_ts]=mind;
+	
 	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
-	console.log(datesel,datesel_a,datesel_b);
+	console.log(mind,datesel);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
@@ -194,8 +184,7 @@ function prep_data () {
 
 	mindate=var_min[datecol];
 	maxdate=var_max[datecol];
-	datesel=data[0][datecol];  // init: begin met datum van eerste record.	
-	datesel_a=datesel;
+	datesel[current_ts]=data[0][datecol];  // init: begin met datum van eerste record.		
 
 	console.log ("prep:",mindate,maxdate); 
 
@@ -236,12 +225,13 @@ function update_choropleth (chartname) {
 	var records, color, colorstring;
 
 
+	currentdate=datesel[chartname];
 	console.log('update_choropleth:',chartname);
-	if (datesel==null) {
-		console.log("bailout, datesel=null");
+	if (currentdate==null) {
+		console.log("bailout, currentdate=null");
 		return;
 	}
-// voor entry: datesel bevat  huidige datumkeuze uit tab.
+// voor entry: currentdate bevat  huidige datumkeuze uit tab.
 
 	chart=d3.select("#chart1");
 
@@ -256,9 +246,7 @@ function update_choropleth (chartname) {
 	tgradmin=color_transform(gradmin);
 	tgradmax=color_transform(tgradmax);
 	tdelta=tgradmax-tgradmin;
-
-	console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
-
+	console.log("update_choropleth:",tgradmin, tgradmax, tdelta);
 	console.log("day/regio/var",datesel,regiosel,varsel, varidx);
 	records=data.length;	
 
@@ -270,10 +258,12 @@ function update_choropleth (chartname) {
 		dataslice=[];
 		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
 
-		start_row_a=date_index[datesel_a].start_row;
-		start_row_b=date_index[datesel_b].start_row;
-		eind_row_a=date_index[datesel_a].eind_row;
-		eind_row_b=date_index[datesel_b].eind_row;
+		currentdate_a=datesel['a'];
+		currentdate_b=datesel['b'];
+		start_row_a=date_index[currentdate_a].start_row;
+		start_row_b=date_index[currentdate_b].start_row;
+		eind_row_a=date_index[currentdate_a].eind_row;
+		eind_row_b=date_index[currentdate_b].eind_row;
 		rownr_a=start_row_a;
 		rownr_b=start_row_b;
 		while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
@@ -299,8 +289,8 @@ function update_choropleth (chartname) {
 	prev_regiocolors=prev_chartcolors[chartname];
 
 
-	start_row=date_index[datesel].start_row;
-	eind_row=date_index[datesel].eind_row;
+	start_row=date_index[currentdate].start_row;
+	eind_row=date_index[currentdate].eind_row;
 	console.log("start:end",start_row, eind_row);
 	new_regiocolors={};
 	for (i=0; i<regio_keys.length; i++) {
@@ -311,7 +301,7 @@ function update_choropleth (chartname) {
 	chart_max=data[0][varidx];
 	for (rownr=start_row; rownr<eind_row; rownr++){	
 		row=dataslice[rownr];
-		if ((row[0]-datesel)!=0) {
+		if ((row[0]-currentdate)!=0) {
 			console.log("error-update choropleth", row[0],datesel, start_row, eind_row);
 			}
 		var regio=row[1];			
@@ -345,7 +335,7 @@ function update_choropleth (chartname) {
 		}			
 	prev_chartcolors[chartname]=new_regiocolors;
 
-	var d=datesel;
+	var d=currentdate;
 	console.log(d, typeof(d));
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
@@ -383,6 +373,7 @@ function update_ts_sel (current_ts) {
 	$("#ts_line_a").remove();
 	$("#ts_line_b").remove();		
 	$("#ts_line_c").remove();
+	var datesel_a=datesel['a'];
 	if (datesel_a!=null) {
 		canvas['a'].append("line")
   			.attr("id","ts_line_a")
@@ -393,6 +384,7 @@ function update_ts_sel (current_ts) {
   			.attr("stroke-width", 1)
   			.attr("stroke", 'red');
   		}
+  	var datesel_b=datesel['b'];
   	if (datesel_b!=null) {
 		canvas['b'].append("line")
   			.attr("id","ts_line_b")
@@ -403,6 +395,7 @@ function update_ts_sel (current_ts) {
   			.attr("stroke-width", 1)
   			.attr("stroke", 'blue');
   		}
+  	var datesel_c=datesel['c'];
 	if (datesel_c!=null) {
 		canvas['c'].append("line")
   			.attr("id","ts_line_c")
@@ -413,9 +406,7 @@ function update_ts_sel (current_ts) {
   			.attr("stroke-width", 1)
   			.attr("stroke", 'blue');
   		}
-
-
-  	}
+}
 
 
 
@@ -425,12 +416,14 @@ function update_ts (ts_nr) {
  var svg_ts='#svg_ts'+ts_nr;
  $(svg_ts).remove();
  $('#ts_line_'+ts_nr).remove();
- cv=canvas[ts_nr] = d3.select("#ts_"+ts_nr)
-    		.append("svg")
-    		.attr('xmlns',"http://www.w3.org/2000/svg")
-    		.attr('id','svg_ts'+ts_nr)            
-            .attr("width", ts_width)
-            .attr("height", ts_height);            
+
+ canvas[ts_nr] = d3.select("#ts_"+ts_nr);
+ cv=canvas[ts_nr];
+ cv.append("svg")
+	.attr('xmlns',"http://www.w3.org/2000/svg")
+    .attr('id','svg_ts'+ts_nr)            
+    .attr("width", ts_width)
+    .attr("height", ts_height);            
 	
 	
 
@@ -444,6 +437,7 @@ function update_ts (ts_nr) {
     	maxy=maxval;
     }
 
+    console.log(mindate,maxdate);
     xScale.domain([mindate,maxdate]);   // time in ms
 	xScale.range([50,ts_width]); 
 
@@ -519,10 +513,9 @@ function update_ts (ts_nr) {
 
 	
 
-var line=d3.svg.line()
-//	.interpolate("monotone") 
-	.x(function(d,i)  { return xScale(xdata[i]); })
-	.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
+	var line=d3.svg.line()	
+		.x(function(d,i)  { return xScale(xdata[i]); })
+		.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
 
 	
 	xdata=[];
@@ -542,8 +535,7 @@ var line=d3.svg.line()
 		cv.append("svg:path")
 			//.attr("id","l_"+day+"_"+month)
 			.attr("class","dayl")
-			.attr("d", line(ydata));
-				
+			.attr("d", line(ydata));				
 	}
 
 
@@ -567,21 +559,15 @@ var line=d3.svg.line()
   update_ts_sel(ts_nr);
 }
 
-
+/*
 function change_tab () {
 	$('.tab').removeClass('active_selectie');
 	$(this).addClass('active_selectie');
 	tabsel=$(this).attr('data-tab');
-	if (tabsel=='a') {
-		datesel=datesel_a;		
-	}
-	if (tabsel=='b') {
-		datesel=datesel_b;		
-	}
-
-	update_choropleth(current_ts);
+	datesel=datesel[tabsel];		
+	update_choropleth(tabsel);
 }
-
+*/
 
 
 
@@ -606,65 +592,54 @@ function setup_vars () {
 	$('#v_'+varsel).addClass('active_selectie');
 }
 
-function movie_begin () {
-	datesel=dates[0];
-	//datesel_asdate=convert_date(datesel);
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
-	console.log ("date set to:",datesel);
+
+
+function movie_begin (evt) {
+	current_ts=evt.target.getAttribute('data-ts');
+	var currentdate=dates[0];	
+	console.log(currentdate);
+
+	datesel[current_ts]=currentdate;
+	
+	console.log ("date set to:",currentdate);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_last () {
-	datesel=dates[dates.length-1];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
-	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel);
+	var current_ts=evt.target.getAttribute('data-ts');
+	var currentdate=dates[dates.length-1];
+	datesel[current_ts]=currentdate;
+	
+	console.log ("date set to:",currentdate);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_next () {
-	var nextdate=dates.indexOf(datesel)+1;
+	var current_ts=evt.target.getAttribute('data-ts');
+	var nextdate=dates.indexOf(datesel[current_ts])+1;
 	if (nextdate>=dates.length)
 		nextdate=dates.length;
-	datesel=dates[nextdate];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
+	currentdate=dates[nextdate];
+	datesel[current_ts]=currentdate;
 	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel);
+	console.log ("date set to:",currentdate);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_prev () {
-	var nextdate=dates.indexOf(datesel)-1;
+	var current_ts=evt.target.getAttribute('data-ts');
+	var nextdate=dates.indexOf(datesel[current_ts])-1;
 	if (nextdate<0)
 		nextdate=0;	
 	datesel=dates[nextdate];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
+	currentdate=dates[nextdate];
+	datesel[current_ts]=currentdate;
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel);
 	update_choropleth(current_ts);
@@ -673,8 +648,9 @@ function movie_prev () {
 }
 
 function movie_start () {
+	var current_ts=evt.target.getAttribute('data-ts');
 	console.log("start player");
-	dateindex=dates.indexOf(datesel);
+	dateindex=dates.indexOf(datesel[currentsel]);
 
 	stop_player=false;
 	setTimeout (movie_nextframe,200);
@@ -682,7 +658,7 @@ function movie_start () {
 }
 
 function movie_nextframe() {
-
+	var current_ts=evt.target.getAttribute('data-ts');
 	console.log('nextframe:',dateindex,stop_player);
 	if (stop_player) return;
 	dateindex+=1;
@@ -691,13 +667,7 @@ function movie_nextframe() {
 		stop_player=true;
 		return;
 	}
-	datesel=dates[dateindex];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
+	datesel[current_ts]=dates[dateindex];
 	//datesel_asdate=convert_date(datesel);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
@@ -789,15 +759,11 @@ function init_svg(){
 
 
 	$('#axes_2').on('click',click_regio);
-	//console.log(fignode.childNodes);
-	
-
 	
 	chart3 = chart1.cloneNode(true);
 	chart3.setAttribute("id","chart3");
 	$('#chartbox3').append(chart3);
 	//svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
-
 	
 	for (i=chartnames.length; i--;) {
 		chartname=chartnames[i];
@@ -807,15 +773,19 @@ function init_svg(){
 			prev_regiocolors[regio_keys[i]]=0;
 		}
 		prev_chartcolors[chartname]=prev_regiocolors;
+		datesel[chartname]=data[0][0];
+		canvas[chartname] = d3.select("#ts_"+chartname);
 	}
 
 
 // tab init
+/*
 	tabsel='a';
     $('.tab').on('click',change_tab);
     $('#tab_a').addClass('active_selectie');
     $('.tab').on('mouseenter ',enter_selectie);
 	$('.tab').on('mouseout ',leave_selectie);
+*/
 
 // selectie init
     if (('key' in var_types) && (country_labels.length>0))  {    	
@@ -836,11 +806,13 @@ function init_svg(){
 	if (var_types.indexOf('date')>=0) {
 		console.log('prep');
 		prep_data();		
+		console.log('datesel:',datesel);
 		update_choropleth('a');
 		update_choropleth('b');		
 		update_ts ('a');
 		update_ts ('b');
 		update_ts ('c');
+
 	}
 	
 
