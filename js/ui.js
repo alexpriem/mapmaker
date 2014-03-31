@@ -23,7 +23,11 @@ var yScale=d3.scale.linear();
 var chart_xpos=125;  // label position
 var chart_ypos=100;
 
-var ts_xpos=400;  // label position
+
+var ts_width=400;
+var ts_height=200;
+
+var ts_xpos=ts_width/2;  // label position
 var ts_ypos=10;
 chartnames=['a','b','c'];
 var prev_chartcolors={};
@@ -32,8 +36,6 @@ var datamax;
 
 var current_ts='a';
 
-ts_width=400;
-ts_height=200;
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
     				"July", "August", "September", "October", "November", "December" ];
@@ -88,10 +90,14 @@ function click_ts () {
 function click_regio(evt) {
 
 	regiosel=evt.target.getAttribute('data-regio');
-	var clickedregio=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
-	current_ts=clickedregio.slice(0,1);
+	var clicked_id=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
+	current_ts=clicked_id.slice(0,1);
+	clickedregio=clicked_id.split('_')[0].slice(1);
+	regiolabel=regio_label2key[clickedregio];
 	console.log('click_regio:',clickedregio,regiosel, current_ts);
 
+	
+//	$('#label_'+current_ts).text(regiolabel);
 	$('#svg_ts'+current_ts).remove();		
 	update_ts(current_ts);
 	return false;
@@ -542,13 +548,13 @@ var line=d3.svg.line()
 
 
  	d3.select(svg_ts).on('click', click_ts);
- 	$('#ts_label').remove();
+ 	$('#ts_label_'+current_ts).remove();
 
  	var ts_label=regio_label2key[regiosel];
 
  	console.log('labelpos:',ts_xpos, ts_ypos);
 	cv.append("text")      // text label for the x axis
-		.attr("id","ts_label")
+		.attr("id","ts_label_"+current_ts)
   		.attr("class","label")
         .attr("x", ts_xpos )
         .attr("y", ts_ypos )
