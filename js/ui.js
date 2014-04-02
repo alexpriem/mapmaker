@@ -412,14 +412,13 @@ function update_ts_sel (current_ts) {
 
 function update_ts (ts_nr) {
 
+  var svg_ts='#svg_ts'+ts_nr;
+  $(svg_ts).remove();
+  $('#ts_line_'+ts_nr).remove();
 
- var svg_ts='#svg_ts'+ts_nr;
- $(svg_ts).remove();
- $('#ts_line_'+ts_nr).remove();
-
- canvas[ts_nr] = d3.select("#ts_"+ts_nr);
- cv=canvas[ts_nr];
- cv.append("svg")
+  canvas[ts_nr] = d3.select("#ts_"+ts_nr);
+  cv=canvas[ts_nr];
+  cv.append("svg")
 	.attr('xmlns',"http://www.w3.org/2000/svg")
     .attr('id','svg_ts'+ts_nr)            
     .attr("width", ts_width)
@@ -427,7 +426,7 @@ function update_ts (ts_nr) {
 	
 	
 
-	console.log('update_ts:', regiosel, varsel);	
+	console.log('update_ts:', ts_nr,regiosel, varsel);	
 
 	if (use_regiomin) {
 		miny=regio_ts_min[regiosel];
@@ -438,6 +437,7 @@ function update_ts (ts_nr) {
     }
 
     console.log(mindate,maxdate);
+    console.log(ts_width,ts_height);
     xScale.domain([mindate,maxdate]);   // time in ms
 	xScale.range([50,ts_width]); 
 
@@ -465,7 +465,6 @@ function update_ts (ts_nr) {
     	.tickSize(-0.5*ts_height,0,0)
     	.tickFormat(function(d) {
     			return "";
-
 			});
     		
  	var yGrid=d3.svg.axis();
@@ -474,7 +473,6 @@ function update_ts (ts_nr) {
     	.tickSize(-ts_width,0,0)
     	.tickFormat(function(d) {
     			return "";
-
 			});
 
 /* place axis & grids */
@@ -515,7 +513,7 @@ function update_ts (ts_nr) {
 
 	var line=d3.svg.line()	
 		.x(function(d,i)  { return xScale(xdata[i]); })
-		.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
+		.y(function(d,i)  {  /*console.log('ts:',d,i, yScale(d));*/ return yScale(d); }); 
 
 	
 	xdata=[];
@@ -524,11 +522,13 @@ function update_ts (ts_nr) {
 		console.log("bailout, no regiodata");
 		return;
 	}
-	regioreeks=regio_ts[regiosel];
+	//regioreeks=regio_ts[regiosel];
 
-
+	console.log(regioreeks);
 	for (i=0; i<regioreeks.length; i++) xdata.push(regioreeks[i][0]);  
 	for (i=0; i<regioreeks.length; i++) ydata.push(regioreeks[i][1]);  
+
+	console.log('datalen:',regioreeks.length);
 
 	console.log('daydata:',regioreeks[1]);
 	for (i=1; i<regioreeks.length; i++) {    		
