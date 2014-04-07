@@ -394,14 +394,22 @@ class mapmaker:
         s=json.dumps(total_regio)
         
         g.write('\n\nvar total_regio='+s+';\n')
-        # datum sorteren voor tijdreeks.
-        total_date=sorted(total_date.items())
-        s=json.dumps(total_date)
+        # datum sorteren voor tijdreeks.        
+        
+        
+
+        total_date=[[row[0]]+list(row[1]) for row in sorted(total_date.items())]
+        s=json.dumps(total_date).replace('"','')
         # date-step bepalen
         date_keys=sorted(date_keys.keys())
+        minms=None
         for i,val in enumerate(date_keys[1:]):
-            dk=date_keys[i-1]-date_keys[i]            
+            dk=date_keys[i]-date_keys[i-1];            
             ms=dk.days*24*3600*1000+dk.seconds*1000 # to milliseconds
+            if minms is None:   
+                minms=ms
+            if ms<minms and ms>0:
+                minms=ms
             
         g.write('\n\nvar datestep_ms=%d;' % ms)
         

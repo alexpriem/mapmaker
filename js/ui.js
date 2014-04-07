@@ -6,28 +6,37 @@ var regiosel=0;
 var varsel=varnames[2];
 
 
+
+/* chart stuff */
 var use_regiomin=true;
 var color=[];
 var canvas={};
 var chart;
 var chart_width=0;
 var chart_height=0;
+var chartnames=['a','b','c'];
+var prev_chartcolors={};
 
-var xScale=d3.time.scale();
-var yScale=d3.scale.linear();
+/* timeseries stuff */
+/* need timeseries class for all of this.  */
+var xScale={}; 
+var yScale={}; 
+var xAxis={}; 
+var yAxis={}; 
+var xGrid={}; 
+var yGrid={}; 
+
+var ts_width=400;
+var ts_height=200;
+var ts_xpos=ts_width/2;  // label position
+var ts_ypos=10;
+var ts_sel_color={'a':'red','b':'blue','c':'black'};
 
 var chart_xpos=125;  // label position
 var chart_ypos=100;
 
 
-var ts_width=400;
-var ts_height=200;
 
-var ts_xpos=ts_width/2;  // label position
-var ts_ypos=10;
-var chartnames=['a','b','c'];
-var ts_sel_color={'a':'red','b':'blue','c':'black'};
-var prev_chartcolors={};
 var datamin;
 var datamax;
 
@@ -49,7 +58,7 @@ function click_ts () {
 	current_ts=this.id.slice(this.id.length-1);
 	xpos=d3.mouse(this)[0];
 	
-	var currentdate=xScale.invert(xpos);			
+	var currentdate=xScale[current_ts].invert(xpos);			
 	console.log('click_ts:',current_ts, xpos, currentdate);
 
 
@@ -189,6 +198,25 @@ function prep_data () {
 	datesel['b']=data[0][datecol];  // init: begin met datum van eerste record.	
 	datesel['c']=data[0][datecol];  // init: begin met datum van eerste record.	
 
+	/* dit kan ook in make_ts.py gedaan worden -- scheelt inlaadtijd*/
+	total_regio_min=total_regio_max=total_regio[0][varidx];			
+	for (i=0; i<total_regio.length;i++) {
+		val=total_regio[i][varidx];	
+		if ((total_regio_min==null) || (val<total_regio_min)) {total_regio_min=val;}
+		if ((total_regio_max==null) || (val>total_regio_max)) {total_regio_max=val;}
+		//console.log('chartc:',val,total_regio_min,total_regio_max);
+	}
+	total_date_min=total_date_max=total_date[0][varidx-1];		
+	console.log('chartc:',total_date.length,total_date);	
+	for (i=0; i<total_date.length;i++) {
+		val=total_date[i][varidx-1];	
+		if ((total_date_min==null) || (val<total_date_min)) {total_date_min=val;}
+		if ((total_date_max==null) || (val>total_date_max)) {total_date_max=val;}
+		console.log('chartc:',val,total_date_min,total_date_max);
+	}
+
+
+
 	console.log ("prep:",mindate,maxdate); 
 
 	regiosel=data[0][regiocol]; // init: begin met regio van eerste record.
@@ -202,6 +230,8 @@ function prepare_c_chart (){
 	if (cmode=='diff') {
 		var dataslice=[];
 		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
+		chartc_min=null;	/* global for the moment */
+		chartc_max=null;
 
 		var datesel_a=datesel['a'];
 		var datesel_b=datesel['b'];
@@ -225,12 +255,17 @@ function prepare_c_chart (){
 				rownr_a++;
 				rownr_b++;
 			}
-		val=data[rownr][varidx];	
+		val=data[rownr][varidx];
+		if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
+		if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
 		dataslice.push([data[rownr], val]);		
 		}
 	}
 	if (cmode=='tot') {
+		chartc_min=total_regio_min;
+		chartc_min=total_regio_max;
 		var dataslice=total_regio;
+	
 	}
 	if (cmode=='totsel') {
 		var dataslice=total_regio;
@@ -338,9 +373,6 @@ function update_choropleth (chartname) {
 		}
 		var regio=row[regioidx];			
 		val=row[varidx];
-		if (chartname=='c') {
-			console.log('C:',regio,val);
-		}
 		
 	//	console.log(regio, val);				
 		prev_val=prev_regiocolors[regio];   // kleur zetten als 
@@ -433,10 +465,10 @@ function update_ts_sel (current_ts) {
 		if (current_ts in canvas) {
 			canvas[current_ts].append("line")
   				.attr("id","ts_line_"+current_ts)
-  				.attr("x1",xScale(selected_date))
-  				.attr("x2",xScale(selected_date))
-  				.attr("y1",yScale(miny))
-  				.attr("y2",yScale(maxy))
+  				.attr("x1",xScale[current_ts](selected_date))
+  				.attr("x2",xScale[current_ts](selected_date))
+  				.attr("y1",yScale[current_ts](miny))
+  				.attr("y2",yScale[current_ts](maxy))
   				.attr("stroke-width", 1)
   				.attr("stroke", ts_sel_color[current_ts]);
   		}
@@ -458,31 +490,46 @@ function update_ts (current_ts) {
             .attr("width", ts_width)
             .attr("height", ts_height);            
 	
+
+	var x_Scale=d3.time.scale();
+	var y_Scale=d3.scale.linear();
+	
+	xScale[current_ts]=x_Scale;
+	yScale[current_ts]=y_Scale;
 	
 
 	console.log('update_ts:', regiosel, varsel);	
 
-	if (use_regiomin) {
-		miny=regio_ts_min[regiosel];
-		maxy=regio_ts_max[regiosel]		
-	} else {
-    	miny=minval;
-    	maxy=maxval;
+	if (current_ts=='c') {
+		miny=total_date_min;
+		maxy=total_date_max;
+	} else {                   /* a/b deel */
+		if (use_regiomin) {
+			miny=regio_ts_min[regiosel];  /* fixme: uitsplitsen naar a/b */
+			maxy=regio_ts_max[regiosel];
+		} else {
+    		miny=minval;			/* fixme: uitsplitsen naar a/b */
+    		maxy=maxval;
+    	}
     }
 
-    xScale.domain([mindate,maxdate]);   // time in ms
-	xScale.range([50,ts_width]); 
+    console.log('update_ts:miny,maxy',current_ts, miny,maxy)
 
-    yScale.domain([maxy,miny]);	
-	yScale.range([50,ts_height-50]); 
+    x_Scale.domain([mindate,maxdate]);   // time in ms
+	x_Scale.range([50,ts_width]); 
+
+    y_Scale.domain([maxy,miny]);	
+	y_Scale.range([50,ts_height-50]); 
 	var line = d3.svg.line();
 
-	var xAxis=d3.svg.axis();
-    xAxis.scale(xScale)
+	var x_Axis=d3.svg.axis();
+	xAxis[current_ts]=x_Axis;
+    x_Axis.scale(x_Scale)
     	.orient("bottom");
 
-	var yAxis=d3.svg.axis();
-    yAxis.scale(yScale)
+	var y_Axis=d3.svg.axis();
+	xAxis[current_ts]=y_Axis;
+    y_Axis.scale(y_Scale)
     	.orient("left")   
     	.ticks(5)
     	.tickFormat(function(d) {
@@ -491,8 +538,9 @@ function update_ts (current_ts) {
 			});
 
 
-	var xGrid=d3.svg.axis();
-    xGrid.scale(xScale)
+	var x_Grid=d3.svg.axis();
+	xGrid[current_ts]=x_Grid;
+    x_Grid.scale(x_Scale)
     	.orient("bottom")
     	.tickSize(-0.5*ts_height,0,0)
     	.tickFormat(function(d) {
@@ -500,8 +548,9 @@ function update_ts (current_ts) {
 
 			});
     		
- 	var yGrid=d3.svg.axis();
-    yGrid.scale(yScale)
+ 	var y_Grid=d3.svg.axis();
+ 	yGrid[current_ts]=y_Grid;
+    y_Grid.scale(y_Scale)
     	.orient("left")    	
     	.tickSize(-ts_width,0,0)
     	.tickFormat(function(d) {
@@ -514,20 +563,20 @@ function update_ts (current_ts) {
    cv.append("g")
     		.attr("class","grid")
     		.attr("transform","translate(0,"+(ts_height-50)+")")
-    		.call(xGrid);
+    		.call(x_Grid);
    cv.append("g")
     		.attr("class","grid")
     		.attr("transform","translate(50,0)")
-			.call(yGrid);
+			.call(y_Grid);
 
    cv.append("g")
     		.attr("class","xaxis")
     		.attr("transform","translate(0,"+(ts_height-50)+")")
-    		.call(xAxis);
+    		.call(x_Axis);
    cv.append("g")
     		.attr("class","yaxis")
     		.attr("transform","translate(50,0)")
-    		.call(yAxis);
+    		.call(y_Axis);
 
 /* xas / yas labels */
     cv.append("text")
@@ -547,21 +596,44 @@ function update_ts (current_ts) {
 
 var line=d3.svg.line()
 //	.interpolate("monotone") 
-	.x(function(d,i)  { return xScale(xdata[i]); })
-	.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return yScale(d); }); 
+	.x(function(d,i)  { return x_Scale(xdata[i]); })
+	.y(function(d,i)  {  /*console.log(d,i, yScale(d));*/ return y_Scale(d); }); 
 
 	
 	xdata=[];
 	ydata=[];
-	if (!(regiosel in regio_ts)) {
-		console.log("bailout, no regiodata");
-		return;
+	console.log(current_ts,cmode);
+	if (current_ts=='c') {
+		if (cmode=='tot') {
+			regioreeks=total_date;
+			ts_label='Totaal';
+		}
+		if (cmode=='totsel') {
+			regioreeks=total_date;
+			ts_label='Totaal'+ts_label;
+		}
+		if (cmode=='diff') {
+			regioreeks=total_date;
+			ts_label='Verschil';
+		}
+		if (cmode=='reg') {
+			regioreeks=total_date;
+			ts_label='Regressie';
+		}
+	} else {
+		if (!(regiosel in regio_ts)) {				// a of b timeseries
+			console.log("bailout, no regiodata");
+			return;
+		}
+		regioreeks=regio_ts[regiosel];
+		var ts_label=regio_label2key[regiosel];
 	}
-	regioreeks=regio_ts[regiosel];
 
-
+	//console.log('C:regioreeks',current_ts, regioreeks)
 	for (i=0; i<regioreeks.length; i++) xdata.push(regioreeks[i][0]);  
 	for (i=0; i<regioreeks.length; i++) ydata.push(regioreeks[i][1]);  
+
+		console.log(ydata);
 
 	console.log('daydata:',regioreeks[1]);
 	for (i=1; i<regioreeks.length; i++) {    		
@@ -575,8 +647,6 @@ var line=d3.svg.line()
 
  	d3.select(svg_ts).on('click', click_ts);
  	$('#ts_label_'+current_ts).remove();
-
- 	var ts_label=regio_label2key[regiosel];
 
  	console.log('labelpos:',ts_xpos, ts_ypos);
 	cv.append("text")      // text label for the x axis
