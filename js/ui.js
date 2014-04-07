@@ -1,7 +1,6 @@
 var regio_ts={};
 var regio_ts_min={};
 var regio_ts_max={};
-var tabsel;
 var datesel={};
 var regiosel=0;
 var varsel=varnames[2];
@@ -33,7 +32,7 @@ var datamin;
 var datamax;
 
 var current_ts='a';
-
+var cmode='tot';
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
     				"July", "August", "September", "October", "November", "December" ];
@@ -74,6 +73,7 @@ function click_ts () {
 	//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
 	console.log(datesel);
 	update_choropleth(current_ts);
+	if ((current_ts!='c') && (cmode!='tot')) update_choropleth('c');  // verschil updaten
 	update_ts_sel(current_ts);
 	return false;
 }
@@ -108,6 +108,7 @@ function change_var () {
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
 	update_choropleth(current_ts);
+	if ((current_ts!='c') && (cmode!='tot')) update_choropleth('c');  // verschil updaten
 	update_ts(current_ts);	
 	return false;
 }
@@ -195,6 +196,42 @@ function prep_data () {
 
 
 
+function update_c_chart (){
+
+	if (cmode=='diff') {
+		var dataslice=[];
+		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
+
+		var datesel_a=datesel['a'];
+		var datesel_b=datesel['b'];
+		start_row_a=date_index[datesel_a].start_row;
+		start_row_b=date_index[datesel_b].start_row;
+		eind_row_a=date_index[datesel_a].eind_row;
+		eind_row_b=date_index[datesel_b].eind_row;
+		rownr_a=start_row_a;
+		rownr_b=start_row_b;
+		while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
+			if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
+				val=data[rownr_a][varidx];
+				rownr_a++;
+			}
+			if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
+				val=data[rownr_b][varidx];
+				rownr_b++;
+			}
+			if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
+				val=data[rownr_a][varidx]-data[rownr_b][varidx];
+				rownr_a++;
+				rownr_b++;
+			}
+		val=data[rownr][varidx];	
+		dataslice.push([data[rownr], val]);		
+		}
+	}
+
+	return dataslice;
+}
+
 
 /* zet waarde van shape, reken waarde eerst om naar kleur */
 
@@ -234,8 +271,6 @@ function update_choropleth (chartname) {
 	}
 // voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-	
-
 	if (gradmax=='max') {
 		tgradmax=datamax;      // max is afhankelijk van keuze
 	} else {
@@ -255,39 +290,10 @@ function update_choropleth (chartname) {
 
 	regioidx=1;
 	dateidx=0;
+
 	dataslice=data;
-
-	if (tabsel=='a-b') {
-		dataslice=[];
-		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
-
-		var datesel_a=datesel['a'];
-		var datesel_b=datesel['b'];
-		start_row_a=date_index[datesel_a].start_row;
-		start_row_b=date_index[datesel_b].start_row;
-		eind_row_a=date_index[datesel_a].eind_row;
-		eind_row_b=date_index[datesel_b].eind_row;
-		rownr_a=start_row_a;
-		rownr_b=start_row_b;
-		while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
-			if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
-				val=data[rownr_a][varidx];
-				rownr_a++;
-			}
-			if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
-				val=data[rownr_b][varidx];
-				rownr_b++;
-			}
-			if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
-				val=data[rownr_a][varidx]-data[rownr_b][varidx];
-				rownr_a++;
-				rownr_b++;
-			}
-		val=data[rownr][varidx];	
-		dataslice.push([data[rownr], val]);		
-		}
-	}
-
+	
+	
 
 	prev_regiocolors=prev_chartcolors[chartname];
 
@@ -343,10 +349,11 @@ function update_choropleth (chartname) {
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
 
-	$('#chartlabel_'+current_ts).remove();	
-	chart=d3.select("#chart_"+current_ts);
+	$('#chartlabel_'+chartname).remove();	
+	chart=d3.select("#chart_"+chartname);
+	console.log('update_choropleth,label:',chartname,chart);
 	chart.append("text")      // text label for the x axis
-		.attr("id","chartlabel_"+current_ts)
+		.attr("id","chartlabel_"+chartname)
   		.attr("class","label")
         .attr("x", chart_xpos )
         .attr("y", chart_ypos )
@@ -367,6 +374,7 @@ function update_selectie () {
 	console.log ('selectie=',selected_keyid);
 
 	update_choropleth (current_ts);	
+	if ((current_ts!='c') && (cmode!='tot')) update_choropleth('c');  // verschil updaten
 	update_ts(current_ts);	
 }
 
@@ -393,16 +401,16 @@ function update_ts_sel (current_ts) {
 
 
 
-function update_ts (ts_nr) {
+function update_ts (current_ts) {
 
 
- var svg_ts='#svg_ts'+ts_nr;
+ var svg_ts='#svg_ts'+current_ts;
  $(svg_ts).remove();
- $('#ts_line_'+ts_nr).remove();
- cv=canvas[ts_nr] = d3.select("#ts_"+ts_nr)
+ $('#ts_line_'+current_ts).remove();
+ cv=canvas[current_ts] = d3.select("#ts_"+current_ts)
     		.append("svg")
     		.attr('xmlns',"http://www.w3.org/2000/svg")
-    		.attr('id','svg_ts'+ts_nr)            
+    		.attr('id','svg_ts'+current_ts)            
             .attr("width", ts_width)
             .attr("height", ts_height);            
 	
@@ -538,22 +546,16 @@ var line=d3.svg.line()
   		.attr("font-weight", "bold")
         .text(ts_label);
 
-  update_ts_sel(ts_nr);
+  update_ts_sel(current_ts);
 }
 
 
-function change_tab () {
+function change_cmode () {
 	$('.tab').removeClass('active_selectie');
 	$(this).addClass('active_selectie');
-	tabsel=$(this).attr('data-tab');
-	if (tabsel=='a') {
-		datesel=datesel_a;		
-	}
-	if (tabsel=='b') {
-		datesel=datesel_b;		
-	}
+	cmode=$(this).attr('data-tab');
 
-	update_choropleth(current_ts);
+	update_choropleth('c');	
 }
 
 
@@ -758,8 +760,8 @@ function init_svg(){
 
 
 // tab init
-	tabsel='a';
-    $('.tab').on('click',change_tab);
+	cmode='tot';
+    $('.tab').on('click',change_cmode);
     $('#tab_a').addClass('active_selectie');
     $('.tab').on('mouseenter ',enter_selectie);
 	$('.tab').on('mouseout ',leave_selectie);
@@ -783,14 +785,13 @@ function init_svg(){
 	if (var_types.indexOf('date')>=0) {
 		console.log('prep');
 		prep_data();		
-		for (i=0; i<chartnames.length; i++) {
-
-			update_choropleth('a');
-			update_choropleth('b');		
-			update_ts ('a');
-			update_ts ('b');
-			update_ts ('c');
-		}
+		update_choropleth('a');
+		update_choropleth('b');		
+		update_choropleth('c');	
+		update_ts ('a');
+		update_ts ('b');
+		update_ts ('c');
+		
 	}
 	
 
