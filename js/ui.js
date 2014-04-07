@@ -126,8 +126,7 @@ function convert_date (d) {
 
 function prep_data () {
 
-	var records=data.length;
-	var row, ts,regio;
+	var records=data.length;	var row, ts,regio;
 	
 	prevd=0;
 	start_i=0;
@@ -235,7 +234,7 @@ function update_choropleth (chartname) {
 	}
 // voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-	chart=d3.select("#chart1");
+	
 
 	if (gradmax=='max') {
 		tgradmax=datamax;      // max is afhankelijk van keuze
@@ -344,9 +343,10 @@ function update_choropleth (chartname) {
 	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
 
 
-	$('#chartlabel').remove();	
+	$('#chartlabel_'+current_ts).remove();	
+	chart=d3.select("#chart_"+current_ts);
 	chart.append("text")      // text label for the x axis
-		.attr("id","chartlabel")
+		.attr("id","chartlabel_"+current_ts)
   		.attr("class","label")
         .attr("x", chart_xpos )
         .attr("y", chart_ypos )
@@ -380,7 +380,7 @@ function update_ts_sel (current_ts) {
 	if (selected_date!=null) {
 		if (current_ts in canvas) {
 			canvas[current_ts].append("line")
-  				.attr("id","ts_line_a")
+  				.attr("id","ts_line_"+current_ts)
   				.attr("x1",xScale(selected_date))
   				.attr("x2",xScale(selected_date))
   				.attr("y1",yScale(miny))
@@ -581,66 +581,44 @@ function setup_vars () {
 }
 
 function movie_begin () {
-	datesel=dates[0];
-	//datesel_asdate=convert_date(datesel);
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
-	console.log ("date set to:",datesel);
+	var current_ts=evt.target.getAttribute('data-ts');
+	datesel[current_ts]=dates[0];	
+	console.log ("date set to:",datesel[current_ts]);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_last () {
-	datesel=dates[dates.length-1];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
+	var current_ts=evt.target.getAttribute('data-ts');
+	datesel[current_ts]=dates[dates.length-1];
 	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel);
+	console.log ("date set to:",datesel[current_ts]);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_next () {
+	var current_ts=evt.target.getAttribute('data-ts');
 	var nextdate=dates.indexOf(datesel)+1;
 	if (nextdate>=dates.length)
 		nextdate=dates.length;
-	datesel=dates[nextdate];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
+	datesel[current_ts]=dates[nextdate];
 	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel);
+	console.log ("date set to:",datesel[current_ts]);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
 }
 
 function movie_prev () {
+	var current_ts=evt.target.getAttribute('data-ts');	
 	var nextdate=dates.indexOf(datesel)-1;
 	if (nextdate<0)
 		nextdate=0;	
-	datesel=dates[nextdate];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
-	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel);
+	datesel[current_ts]=dates[nextdate];
+	console.log ("date set to:",datesel[current_ts]);
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	return false;
@@ -657,6 +635,7 @@ function movie_start () {
 
 function movie_nextframe() {
 
+	var current_ts=evt.target.getAttribute('data-ts');
 	console.log('nextframe:',dateindex,stop_player);
 	if (stop_player) return;
 	dateindex+=1;
@@ -665,14 +644,8 @@ function movie_nextframe() {
 		stop_player=true;
 		return;
 	}
-	datesel=dates[dateindex];
-	if (tabsel=='a') { 
-		datesel_a=datesel;
-	} 
-	if (tabsel=='b') {
-		datesel_b=datesel;
-	}
-	//datesel_asdate=convert_date(datesel);
+	datesel[current_ts]=dates[dateindex];
+	
 	update_choropleth(current_ts);
 	update_ts_sel(current_ts);
 	setTimeout (movie_nextframe,10);		
@@ -711,7 +684,7 @@ function init_svg(){
 
 	var chartdiv=document.getElementById('chartbox1');
 	var chart1=chartdiv.children[0];
-	chart1.setAttribute("id","chart1");	
+	chart1.setAttribute("id","chart_a");	
 	chart1.removeAttribute("viewBox");	
 
 	w=chart1.getAttributeNS(null,'width');
@@ -731,7 +704,7 @@ function init_svg(){
 
 	
 	chart2 = chart1.cloneNode(true);
-	chart2.setAttribute("id","chart2");
+	chart2.setAttribute("id","chart_b");
 	$('#chartbox2').append(chart2);
 
 //	chart2=document.getElementById('chart2');
@@ -768,7 +741,7 @@ function init_svg(){
 
 	
 	chart3 = chart1.cloneNode(true);
-	chart3.setAttribute("id","chart3");
+	chart3.setAttribute("id","chart_c");
 	$('#chartbox3').append(chart3);
 	//svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
 
