@@ -386,13 +386,13 @@ class mapmaker:
             var_min.insert(0,mindatestr)         # min /max datum invoegen?
             var_max.insert(0,maxdatestr)
             
-
+        
                     
         line_out=line_out[:-2]
-        g.write(line_out+'];\n')
+        g.write(line_out+'];\n')        
+        total_regio=[[0, int(row[0])]+list(row[1]) for row in sorted(total_regio.items())]
+        s=json.dumps(total_regio)
         
-        #
-        s=json.dumps(total_regio)    
         g.write('\n\nvar total_regio='+s+';\n')
         # datum sorteren voor tijdreeks.
         total_date=sorted(total_date.items())

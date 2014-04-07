@@ -196,7 +196,8 @@ function prep_data () {
 
 
 
-function update_c_chart (){
+function prepare_c_chart (){
+
 
 	if (cmode=='diff') {
 		var dataslice=[];
@@ -228,7 +229,17 @@ function update_c_chart (){
 		dataslice.push([data[rownr], val]);		
 		}
 	}
+	if (cmode=='tot') {
+		var dataslice=total_regio;
+	}
+	if (cmode=='totsel') {
+		var dataslice=total_regio;
+	}
+	if (cmode=='reg') {
+		var dataslice=[];
+	}
 
+	console.log ('prepare_c_chart:',cmode, dataslice);
 	return dataslice;
 }
 
@@ -247,6 +258,7 @@ function set_shape_color_by_value (chartname, regio, val) {
 	color=colormap[colorindex];					
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
+	//console.log('set_shape_color_by_value:',regio,colorstring)
 	el_ids=shape_ids[regio];				
 	if (typeof(el_ids)!="undefined") {
 		for (i=0; i<el_ids.length; i++) {
@@ -257,6 +269,8 @@ function set_shape_color_by_value (chartname, regio, val) {
 			console.log("undefined regio:", regio);
 	} 													
 }
+
+
 
 
 function update_choropleth (chartname) {
@@ -290,31 +304,44 @@ function update_choropleth (chartname) {
 
 	regioidx=1;
 	dateidx=0;
-
-	dataslice=data;
-	
-	
-
 	prev_regiocolors=prev_chartcolors[chartname];
 
-	selected_date=datesel[chartname];
-	start_row=date_index[selected_date].start_row;
-	eind_row=date_index[selected_date].eind_row;
+
+	if (chartname=='c') {
+		dataslice=prepare_c_chart();
+		start_row=0;
+		eind_row=total_regio.length;
+	} else { 
+		dataslice=data;
+		selected_date=datesel[chartname];
+		start_row=date_index[selected_date].start_row;
+		eind_row=date_index[selected_date].eind_row;	
+	}
+	
+
 	console.log("start:end",start_row, eind_row);
 	new_regiocolors={};
 	for (i=0; i<regio_keys.length; i++) {
 		new_regiocolors[regio_keys[i]]=0;
 	}
 	
-	chart_min=data[0][varidx];  // chart minimum/maximum init.
-	chart_max=data[0][varidx];
+	row=dataslice[start_row];
+	chart_min=row[varidx];  // chart minimum/maximum init.
+	chart_max=row[varidx];
 	for (rownr=start_row; rownr<eind_row; rownr++){	
-		row=dataslice[rownr];
+		row=dataslice[rownr];	
+
 		if ((row[0]-selected_date)!=0) {
-			console.log("error-update choropleth", row[0],selected_date, start_row, eind_row);
+			if (!((chartname=='c') && (cmode!='totsel')))  {
+				console.log("error-update choropleth", row[0],selected_date, start_row, eind_row);
 			}
-		var regio=row[1];			
-		val=row[varidx];			
+		}
+		var regio=row[regioidx];			
+		val=row[varidx];
+		if (chartname=='c') {
+			console.log('C:',regio,val);
+		}
+		
 	//	console.log(regio, val);				
 		prev_val=prev_regiocolors[regio];   // kleur zetten als 
 		                                    // nieuwe waarde ongelijk vorige waarde
@@ -329,6 +356,7 @@ function update_choropleth (chartname) {
 				chart_max=val;
 			}
 			val=color_transform(val);		
+			
 			set_shape_color_by_value (chartname, regio,val);
 		}
 	} /* for records */
@@ -344,13 +372,29 @@ function update_choropleth (chartname) {
 		}			
 	prev_chartcolors[chartname]=new_regiocolors;
 
-	var d=selected_date;
-	console.log(d, typeof(d));
-	datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
+	
+	if (chartname=='c') { 
+		if (cmode=='tot') {
+			datelabel='Totaal';
+		}
+		if (cmode=='totsel') {
+			datelabel='Totaal';
+		}
+		if (cmode=='diff') {
+			datelabel='Verschil';
+		}
+		if (cmode=='reg') {
+			datelabel='Regressie';
+		}
+	} else {
+		var d=selected_date;	
+		datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
+	}
 
 
 	$('#chartlabel_'+chartname).remove();	
 	chart=d3.select("#chart_"+chartname);
+
 	console.log('update_choropleth,label:',chartname,chart);
 	chart.append("text")      // text label for the x axis
 		.attr("id","chartlabel_"+chartname)
@@ -709,8 +753,7 @@ function init_svg(){
 	chart2.setAttribute("id","chart_b");
 	$('#chartbox2').append(chart2);
 
-//	chart2=document.getElementById('chart2');
-	console.log(chart2);
+//	chart2=document.getElementById('chart2');	
 	var subnodes=chart2.childNodes;
 	/* this should not fail, 'figure_1' is always in the svg */	
 
@@ -726,7 +769,7 @@ function init_svg(){
 	fignode.setAttribute('id','figure_2');
 	axisnode=fignode.firstElementChild;
 	axisnode.setAttribute('id','axes_2');
-	groupnode=axisnode.firstElementChild
+	groupnode=axisnode.firstElementChild;
 	while (groupnode) {
 		var pathnode=groupnode.firstElementChild;
 		var pathid=pathnode.getAttribute('id');
@@ -745,12 +788,35 @@ function init_svg(){
 	chart3 = chart1.cloneNode(true);
 	chart3.setAttribute("id","chart_c");
 	$('#chartbox3').append(chart3);
-	//svg.setAttributeNS(null,'width',(chart_width+200)+'pt');
+	var subnodes=chart2.childNodes;
+	/* this should not fail, 'figure_1' is always in the svg */	
+
+	el=chart3.firstElementChild;
+	while (el) {    	
+		if (el.getAttribute('id')=='figure_1') {
+				var fignode=el;
+				break;
+			}
+    	el = el.nextElementSibling;
+  	}
+
+	fignode.setAttribute('id','figure_3');
+	axisnode=fignode.firstElementChild;
+	axisnode.setAttribute('id','axes_3');
+	groupnode=axisnode.firstElementChild;
+	while (groupnode) {
+		var pathnode=groupnode.firstElementChild;
+		var pathid=pathnode.getAttribute('id');
+		if (pathid!=null) {
+			pathnode.setAttribute('id','c'+pathid.slice(1));
+		}
+		groupnode = groupnode.nextElementSibling;
+	}
+
 
 	
 	for (i=chartnames.length; i--;) {
-		chartname=chartnames[i];
-		console.log()
+		chartname=chartnames[i];		
 		prev_regiocolors={};
 		for (j=regio_keys.length; j--;) {		
 			prev_regiocolors[regio_keys[i]]=0;
