@@ -207,12 +207,12 @@ function prep_data () {
 		//console.log('chartc:',val,total_regio_min,total_regio_max);
 	}
 	total_date_min=total_date_max=total_date[0][varidx-1];		
-	console.log('chartc:',total_date.length,total_date);	
+	
 	for (i=0; i<total_date.length;i++) {
 		val=total_date[i][varidx-1];	
 		if ((total_date_min==null) || (val<total_date_min)) {total_date_min=val;}
 		if ((total_date_max==null) || (val>total_date_max)) {total_date_max=val;}
-		console.log('chartc:',val,total_date_min,total_date_max);
+	//	console.log('chartc:',val,total_date_min,total_date_max);
 	}
 
 
