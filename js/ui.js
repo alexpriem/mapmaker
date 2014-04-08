@@ -805,7 +805,7 @@ function init_svg(){
 
 	w=chart1.getAttributeNS(null,'width');
 	chart_width=parseInt(w.slice(0,w.length-2));
-	chart1.setAttributeNS(null,'width',(chart_width-175)+'pt');
+	chart1.setAttributeNS(null,'width',(chart_width-50)+'pt');
 	chart1.setAttributeNS(null,'padding',-50+'px');
 	h=chart1.getAttributeNS(null,'height');
 	chart_height=h.slice(0,h.length-2);

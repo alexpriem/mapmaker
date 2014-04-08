@@ -468,8 +468,8 @@ class mapmaker:
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         fig.frameon=False        
-        for item in [fig, ax]:
-            item.patch.set_visible(False)
+     #   for item in [fig, ax]:
+     #       item.patch.set_visible(False)
         
         nonecounter=0
         regios=[]
@@ -517,7 +517,7 @@ class mapmaker:
         # add classes to DOM-objects
         
         f = StringIO()
-        pyplot.savefig(f, format="svg")
+        pyplot.savefig(f, format="svg", bbox_inches = 'tight', pad_inches = 0)
         tree, xmlid = ET.XMLID(f.getvalue())    
         
         
