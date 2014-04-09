@@ -126,12 +126,6 @@ var colormaps={
 
 
 
-
-
-
-
-
-
 function Colormap (chartname) {
 
 	this.chartname=chartname;
@@ -160,8 +154,9 @@ function Colormap (chartname) {
 	}
 
 
-	this.init_colormap_inputs=function (chartname) {
+	this.init_colormap_inputs=function () {
 
+		var chartname=this.chartname;
 		if 	(typeof(SVGForeignObjectElement)!== 'undefined') {
 			$('.ie_fallback').remove();
 			var chart = d3.select("#chart_"+chartname);
@@ -212,12 +207,13 @@ function Colormap (chartname) {
 	}
 
 
-	this.draw_colormap=function (chartname) {
+	this.draw_colormap=function () {
 
-		console.log("draw_colormap", colormaplength);
+		var chartname=this.chartname;
+		console.log("draw_colormap", colormaplength,chartname);
 
 
-		$('.colormap').remove();
+		$('.colormap_'+chartname).remove();
 		var barlength=chart_height/3;
 		var barstep=(barlength/this.gradsteps);
 		var chart = d3.select("#chart_"+chartname);
@@ -228,7 +224,7 @@ function Colormap (chartname) {
 		var transform=this.transform;
 
 		chart.append("rect")
-			.attr("class","colormap")
+			.attr("class","colormap_"+chartname)
 			.attr("x",chart_width-25)
 			.attr("y",100)
 			.attr("width",20)
@@ -240,7 +236,7 @@ function Colormap (chartname) {
 		 for (i=1; i<this.gradsteps; i++) {
 		 	color=colormap[i];
 			chart.append("rect")
-				.attr("class","colormap")
+				.attr("class","colormap_"+chartname)
 				.attr("x",chart_width-24)
 				.attr("y",100+barlength-barstep*i-1)
 				.attr("width",18)
@@ -326,8 +322,8 @@ function Colormap (chartname) {
 	}
 
 
-	this.init_colormap_inputs(chartname);
-	this.draw_colormap(chartname);
+	this.init_colormap_inputs();
+	this.draw_colormap();
 
 }
 
