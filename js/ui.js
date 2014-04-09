@@ -26,14 +26,16 @@ var yAxis={};
 var xGrid={}; 
 var yGrid={}; 
 
+var chart_colormap={};
+
 var ts_width=400;
 var ts_height=200;
 var ts_xpos=ts_width/2;  // label position
 var ts_ypos=10;
 var ts_sel_color={'a':'red','b':'blue','c':'black'};
 
-var chart_xpos=125;  // label position
-var chart_ypos=100;
+var chart_xpos=100;  // label position
+var chart_ypos=50;
 
 
 
@@ -274,7 +276,7 @@ function prepare_c_chart (){
 		var dataslice=[];
 	}
 
-	console.log ('prepare_c_chart:',cmode, dataslice);
+	//console.log ('prepare_c_chart:',cmode, dataslice);
 	return dataslice;
 }
 
@@ -283,6 +285,11 @@ function prepare_c_chart (){
 
 function set_shape_color_by_value (chartname, regio, val) {
 
+	var current_colormap=chart_colormap[chartname];
+
+	var tgradmin=current_colormap.tgradmin;
+	var tdelta=current_colormap.tdelta;
+	var gradsteps=current_colormap.gradsteps;
 //	console.log('set_shape_color_by_value:',chartname,regio,val);
 	colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
 	if (colorindex<0) colorindex=0;
@@ -318,19 +325,31 @@ function update_choropleth (chartname) {
 		console.log("bailout, datesel=null");
 		return;
 	}
+
+	var current_colormap=chart_colormap[chartname];
 // voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-	if (gradmax=='max') {
-		tgradmax=datamax;      // max is afhankelijk van keuze
+	var tgradmin=current_colormap.tgradmin;
+	var tgradmin=current_colormap.tgradmin;
+	if (current_colormap.gradmin=='max') {
+		tgradmax=datamax;      // datamax is afhankelijk van keuze chart (a/b/c)
 	} else {
-		tgradmax=gradmax;
+		tgradmax=current_colormap.gradmax;
 	}
-	tgradmin=gradmin;
-	draw_colormap(); 
+	if (current_colormap.gradmin=='min') {
+		tgradmax=datamin;      // datamin is afhankelijk van keuze chart
+	} else {
+		tgradmax=current_colormap.gradmax;
+	}
+	tgradmin=current_colormap.gradmin;
+	current_colormap.draw_colormap(chartname); 
 
-	tgradmin=color_transform(gradmin);
-	tgradmax=color_transform(tgradmax);
-	tdelta=tgradmax-tgradmin;
+	tgradmin=current_colormap.color_transform(tgradmin);
+	tgradmax=current_colormap.color_transform(tgradmax);
+	var tdelta=tgradmax-tgradmin;
+	current_colormap.tgradmin=tgradmin;
+	current_colormap.tgradmax=tgradmax;
+	current_colormap.tdelta=tdelta;
 
 	console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
 
@@ -387,7 +406,7 @@ function update_choropleth (chartname) {
 			if (val>chart_max) {
 				chart_max=val;
 			}
-			val=color_transform(val);		
+			val=current_colormap.color_transform(val);		
 			
 			set_shape_color_by_value (chartname, regio,val);
 		}
@@ -914,8 +933,11 @@ function init_svg(){
 	setup_vars();		
 	init_movie_ui();
 	init_colormaps();
-	//console.log(colormap);
-	console.log(minval,maxval,varsel);
+
+	chart_colormap['a']=new Colormap('a');
+	chart_colormap['b']=new Colormap('b');
+	chart_colormap['c']=new Colormap('c');
+	console.log(chart_colormap);
 
 	console.log(var_types.indexOf('date'));
 	if (var_types.indexOf('date')>=0) {
