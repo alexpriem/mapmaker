@@ -2,6 +2,8 @@
 function TimeSeries(chartname) {
 	this.chartname=chartname;
 	this.use_regiomin=true;
+	this.datesel=null;
+	this.regiosel=null;
 
 	this.click_ts=function () {
 
@@ -28,14 +30,18 @@ function TimeSeries(chartname) {
 	  			}
 	  		}
 	  	}
-	  	datesel[chartname]=mind;  	
+
 		
 		//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
-		console.log(datesel);
-		var chart=charts[chartname];		
+		console.log(this.datesel);
+
+		var chart=charts[chartname];
+	  	chart.datesel=mind;  	
+	  	timeserie.datesel=mind;	  	
 		chart.update_choropleth();
-		if ((chartname!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten
 		timeserie.update_ts_sel();
+
+		if ((chartname!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten		
 		return false;
 	}
 
@@ -47,15 +53,17 @@ function TimeSeries(chartname) {
 	this.update_ts_sel=function  () {
 		var chartname=this.chartname;
 
+		console.log('update_ts_sel:',chartname,this.datesel);
 		$('#ts_line_'+chartname).remove();
-		var selected_date=datesel[chartname];
-		if (selected_date!=null) {			
+		var selected_date=this.datesel;		
+		if (selected_date!=null) {		
+				console.log('update_ts_sel:',this);
 				this.canvas.append("line")
 	  				.attr("id","ts_line_"+chartname)
 	  				.attr("x1",this.xScale(selected_date))
 	  				.attr("x2",this.xScale(selected_date))
-	  				.attr("y1",this.yScale(miny))
-	  				.attr("y2",this.yScale(maxy))
+	  				.attr("y1",this.yScale(this.miny))
+	  				.attr("y2",this.yScale(this.maxy))
 	  				.attr("stroke-width", 1)
 	  				.attr("stroke", ts_sel_color[chartname]);	  		
 	  	}
@@ -84,17 +92,19 @@ function TimeSeries(chartname) {
 		console.log()
 
 		if (chartname=='c') {
-			miny=total_date_min;
-			maxy=total_date_max;
+			var miny=total_date_min;
+			var maxy=total_date_max;
 		} else {                   /* a/b deel */
 			if (this.use_regiomin) {
-				miny=regio_ts_min[regiosel];  /* fixme: uitsplitsen naar a/b */
-				maxy=regio_ts_max[regiosel];
+				var miny=regio_ts_min[regiosel];  /* fixme: uitsplitsen naar a/b */
+				var maxy=regio_ts_max[regiosel];
 			} else {
-	    		miny=minval;			/* fixme: uitsplitsen naar a/b */
-	    		maxy=maxval;
+	    		var miny=minval;			/* fixme: uitsplitsen naar a/b */
+	    		var maxy=maxval;
 	    	}
 	    }
+	    this.miny=miny;
+	    this.maxy=maxy;
 
 	    console.log('update_ts:miny,maxy',chartname, miny,maxy)
 

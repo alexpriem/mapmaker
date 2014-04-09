@@ -7,18 +7,21 @@
 function Chart (chartname) {
 
 	this.chartname=chartname;	
+	this.datesel=null;
+	this.regiosel=null;
 
 	this.click_regio=function (evt) {
 
-		regiosel=evt.target.getAttribute('data-regio');
+		this.regiosel=evt.target.getAttribute('data-regio');
 		var clicked_id=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
-		current_ts=clicked_id.slice(0,1);
+		var chartname=clicked_id.slice(0,1);
 		clickedregio=clicked_id.split('_')[0].slice(1);
 		regiolabel=regio_label2key[clickedregio];
-		console.log('click_regio:',clickedregio,regiosel, current_ts);
-	//	$('#label_'+current_ts).text(regiolabel);
-		$('#svg_ts'+current_ts).remove();		
-		update_ts(current_ts);
+		console.log('click_regio:',clickedregio,this.regiosel, chartname);		
+	//	$('#label_'+chartname).text(regiolabel);
+		$('#svg_ts'+chartname).remove();		
+		timeserie.regiosel=this.regiosel;		
+		timeserie[chartname].update_ts();
 		return false;
 		}
 
@@ -33,8 +36,8 @@ function Chart (chartname) {
 			chartc_min=null;	/* global for the moment */
 			chartc_max=null;
 
-			var datesel_a=datesel['a'];
-			var datesel_b=datesel['b'];
+			var datesel_a=chart['a'].datesel;
+			var datesel_b=chart['b'].datesel;
 			start_row_a=date_index[datesel_a].start_row;
 			start_row_b=date_index[datesel_b].start_row;
 			eind_row_a=date_index[datesel_a].eind_row;
@@ -126,7 +129,7 @@ function Chart (chartname) {
 		var chartname=this.chartname;
 
 		console.log('update_choropleth:',chartname);
-		if (datesel[chartname]==null) {
+		if (this.datesel==null) {
 			console.log("bailout, datesel=null");
 			return;
 		}
@@ -157,7 +160,7 @@ function Chart (chartname) {
 		current_colormap.tdelta=tdelta;
 
 		console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
-		console.log("day/regio/var",datesel,regiosel,varsel, varidx);
+		console.log("day/regio/var",this.datesel,this.regiosel,varsel, varidx);
 		records=data.length;	
 		regioidx=1;			// FIXME 
 		dateidx=0;
@@ -170,7 +173,7 @@ function Chart (chartname) {
 			eind_row=total_regio.length;
 		} else { 
 			dataslice=data;
-			selected_date=datesel[chartname];
+			selected_date=this.datesel;
 			start_row=date_index[selected_date].start_row;
 			eind_row=date_index[selected_date].eind_row;	
 		}

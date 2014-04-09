@@ -41,11 +41,6 @@ var MonthName = [ "January", "February", "March", "April", "May", "June",
 
 
 
-
-
-
-
-
 function change_var () {
 
 	varsel=$(this).attr('data-varname');
