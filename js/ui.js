@@ -8,10 +8,8 @@ var varsel=varnames[2];
 
 
 /* chart stuff */
-var use_regiomin=true;
-var color=[];
-var canvas={};
 
+var color=[];
 var charts={};
 var timeseries={};
 
@@ -171,94 +169,6 @@ function prep_data () {
 	regiosel=data[0][regiocol]; // init: begin met regio van eerste record.
 }
 
-
-
-function prepare_c_chart (){
-
-
-	if (cmode=='diff') {
-		var dataslice=[];
-		// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
-		chartc_min=null;	/* global for the moment */
-		chartc_max=null;
-
-		var datesel_a=datesel['a'];
-		var datesel_b=datesel['b'];
-		start_row_a=date_index[datesel_a].start_row;
-		start_row_b=date_index[datesel_b].start_row;
-		eind_row_a=date_index[datesel_a].eind_row;
-		eind_row_b=date_index[datesel_b].eind_row;
-		rownr_a=start_row_a;
-		rownr_b=start_row_b;
-		while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
-			if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
-				val=data[rownr_a][varidx];
-				rownr_a++;
-			}
-			if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
-				val=data[rownr_b][varidx];
-				rownr_b++;
-			}
-			if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
-				val=data[rownr_a][varidx]-data[rownr_b][varidx];
-				rownr_a++;
-				rownr_b++;
-			}
-		val=data[rownr][varidx];
-		if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
-		if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
-		dataslice.push([data[rownr], val]);		
-		}
-	}
-	if (cmode=='tot') {
-		chartc_min=total_regio_min;
-		chartc_min=total_regio_max;
-		var dataslice=total_regio;
-	
-	}
-	if (cmode=='totsel') {
-		var dataslice=total_regio;
-	}
-	if (cmode=='reg') {
-		var dataslice=[];
-	}
-
-	//console.log ('prepare_c_chart:',cmode, dataslice);
-	return dataslice;
-}
-
-
-/* zet waarde van shape, reken waarde eerst om naar kleur */
-
-function set_shape_color_by_value (chartname, regio, val) {
-
-
-	var current_colormap=this.colormap;
-
-	var tgradmin=current_colormap.tgradmin;
-	var tdelta=current_colormap.tdelta;
-	var gradsteps=current_colormap.gradsteps;
-//	console.log('set_shape_color_by_value:',chartname,regio,val);
-	colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
-	if (colorindex<0) colorindex=0;
-	if (colorindex>=gradsteps) colorindex=gradsteps-1;			
-	colorindex=parseInt(colorindex);
-
-		//console.log(minval, maxval, colorindex);
-	color=colormap[colorindex];					
-	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
-		//console.log('#r'+key+'_1',s);
-	//console.log('set_shape_color_by_value:',regio,colorstring)
-	el_ids=shape_ids[regio];				
-	if (typeof(el_ids)!="undefined") {
-		for (i=0; i<el_ids.length; i++) {
-			el_id='#'+chartname+el_ids[i];						
-			$(el_id).css('fill',colorstring).css('color',colorstring);
-			}		// for  
-		} else {
-			console.log("undefined regio:", regio);
-	} 													
-}
 
 
 

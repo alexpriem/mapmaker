@@ -1,6 +1,7 @@
 
 function TimeSeries(chartname) {
 	this.chartname=chartname;
+	this.use_regiomin=true;
 
 	this.click_ts=function () {
 
@@ -48,17 +49,15 @@ function TimeSeries(chartname) {
 
 		$('#ts_line_'+chartname).remove();
 		var selected_date=datesel[chartname];
-		if (selected_date!=null) {
-			if (chartname in canvas) {
-				canvas[chartname].append("line")
+		if (selected_date!=null) {			
+				this.canvas.append("line")
 	  				.attr("id","ts_line_"+chartname)
 	  				.attr("x1",this.xScale(selected_date))
 	  				.attr("x2",this.xScale(selected_date))
 	  				.attr("y1",this.yScale(miny))
 	  				.attr("y2",this.yScale(maxy))
 	  				.attr("stroke-width", 1)
-	  				.attr("stroke", ts_sel_color[chartname]);
-	  		}
+	  				.attr("stroke", ts_sel_color[chartname]);	  		
 	  	}
 	}
 
@@ -72,7 +71,7 @@ function TimeSeries(chartname) {
 		var svg_ts='#svg_ts'+chartname;
 		$(svg_ts).remove();
 		$('#ts_line_'+chartname).remove();
-		cv=canvas[chartname] = d3.select("#ts_"+chartname)
+		var cv=this.canvas = d3.select("#ts_"+chartname)
 		    		.append("svg")
 		    		.attr('xmlns',"http://www.w3.org/2000/svg")
 		    		.attr('id','svg_ts'+chartname)            
@@ -88,7 +87,7 @@ function TimeSeries(chartname) {
 			miny=total_date_min;
 			maxy=total_date_max;
 		} else {                   /* a/b deel */
-			if (use_regiomin) {
+			if (this.use_regiomin) {
 				miny=regio_ts_min[regiosel];  /* fixme: uitsplitsen naar a/b */
 				maxy=regio_ts_max[regiosel];
 			} else {

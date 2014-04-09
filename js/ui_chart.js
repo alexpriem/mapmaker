@@ -6,7 +6,6 @@
 
 function Chart (chartname) {
 
-
 	this.chartname=chartname;	
 
 	this.click_regio=function (evt) {
