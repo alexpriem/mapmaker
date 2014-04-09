@@ -1,4 +1,12 @@
-function click_regio(evt) {
+
+
+
+function Chart (chartname) {
+
+
+	this.chartname=chartname;
+
+	this.click_regio=function click_regio(evt) {
 
 	regiosel=evt.target.getAttribute('data-regio');
 	var clicked_id=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
@@ -12,15 +20,16 @@ function click_regio(evt) {
 	$('#svg_ts'+current_ts).remove();		
 	update_ts(current_ts);
 	return false;
-}
+	}
 
 
 
 
-function update_choropleth (chartname) {
+	this.update_choropleth=function () {
 
 	var records, color, colorstring;
 
+	var chartname=this.chartname;
 
 	console.log('update_choropleth:',chartname);
 	if (datesel[chartname]==null) {
@@ -161,4 +170,108 @@ function update_choropleth (chartname) {
         .text(datelabel);
    
 }
+
+
+
+	/* initializatie chart */ 
+
+
+	if (chartname=='a') {
+		$('#axes_1').on('click',this.click_regio);	
+		window.document.title=label;
+
+		var chartdiv=document.getElementById('chartbox1');
+		var chart1=chartdiv.children[0];
+		chart1.setAttribute("id","chart_a");	
+		chart1.removeAttribute("viewBox");	
+
+		w=chart1.getAttributeNS(null,'width');
+		chart_width=parseInt(w.slice(0,w.length-2));
+		chart1.setAttributeNS(null,'width',(chart_width-50)+'pt');
+		chart1.setAttributeNS(null,'padding',-50+'px');
+		h=chart1.getAttributeNS(null,'height');
+		chart_height=h.slice(0,h.length-2);
+	}
+
+	
+	if (chartname=='b') {
+		var chartdiv=document.getElementById('chartbox1');
+		var chart1=chartdiv.children[0];
+		var chart2 = chart1.cloneNode(true);
+		chart2.setAttribute("id","chart_b");
+		$('#chartbox2').append(chart2);
+
+	//	chart2=document.getElementById('chart2');	
+		var subnodes=chart2.childNodes;
+		/* this should not fail, 'figure_1' is always in the svg */	
+
+		el=chart2.firstElementChild;
+		while (el) {    	
+			if (el.getAttribute('id')=='figure_1') {
+					var fignode=el;
+					break;
+				}
+	    	el = el.nextElementSibling;
+	  	}
+
+		fignode.setAttribute('id','figure_2');
+		axisnode=fignode.firstElementChild;
+		axisnode.setAttribute('id','axes_2');
+		groupnode=axisnode.firstElementChild;
+		while (groupnode) {
+			var pathnode=groupnode.firstElementChild;
+			var pathid=pathnode.getAttribute('id');
+			if (pathid!=null) {
+				pathnode.setAttribute('id','b'+pathid.slice(1));
+			}
+			groupnode = groupnode.nextElementSibling;
+		}
+
+
+		$('#axes_2').on('click',this.click_regio);
+	//console.log(fignode.childNodes);
+	}
+
+	
+	if (chartname=='c') {
+		var chartdiv=document.getElementById('chartbox1');
+		var chart1=chartdiv.children[0];
+		var chart3 = chart1.cloneNode(true);
+		chart3.setAttribute("id","chart_c");
+		$('#chartbox3').append(chart3);
+		var subnodes=chart3.childNodes;
+		/* this should not fail, 'figure_1' is always in the svg */	
+
+		el=chart3.firstElementChild;
+		while (el) {    	
+			if (el.getAttribute('id')=='figure_1') {
+					var fignode=el;
+					break;
+				}
+	    	el = el.nextElementSibling;
+	  	}
+
+		fignode.setAttribute('id','figure_3');
+		axisnode=fignode.firstElementChild;
+		axisnode.setAttribute('id','axes_3');
+		groupnode=axisnode.firstElementChild;
+		while (groupnode) {
+			var pathnode=groupnode.firstElementChild;
+			var pathid=pathnode.getAttribute('id');
+			if (pathid!=null) {
+				pathnode.setAttribute('id','c'+pathid.slice(1));
+			}
+			groupnode = groupnode.nextElementSibling;
+		}
+		$('#axes_3').on('click',this.click_regio);
+	}
+
+	
+
+	prev_regiocolors={};
+	for (j=regio_keys.length; j--;) {		
+		prev_regiocolors[regio_keys[chartname]]=0;
+	}
+	prev_chartcolors[chartname]=prev_regiocolors;	
+}  // function  Chart()
 

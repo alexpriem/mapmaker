@@ -611,6 +611,8 @@ class mapmaker:
                             'js-lib/chroma.min.js',
                             'js/colormaps.js',                        
                             'js/ui.js',
+                            'js/ui_timeseries.js',
+                            'js/ui_chart.js',
                             'js/data.js',
                             'js/labels.js',
                             'js/shape_ids.js']
