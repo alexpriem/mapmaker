@@ -3,6 +3,8 @@ var colormapname='hot';
 
 
 
+/* deze moeten rekening houden met toestand: alle gradienten bijwerken of alleen actieve gradient*/
+
 var click_transform=function click_transform (evt) {
 
 	transform=$(this).attr('data-transform');
@@ -163,7 +165,7 @@ function Colormap (chartname) {
 		if 	(typeof(SVGForeignObjectElement)!== 'undefined') {
 			$('.ie_fallback').remove();
 			var chart = d3.select("#chart_"+chartname);
-			var svg=document.getElementById('chartbox1').children[0];
+			var svg=document.getElementById('chartbox1').children[0];  // FIXME: juiste element pakken. ipv chartbox1
 			w=svg.getAttributeNS(null,'width');		
 			var imgwidth=parseInt(w.slice(0,w.length-2));
 			console.log('init_colormap_inputs: imgwidth:',imgwidth);
@@ -220,7 +222,7 @@ function Colormap (chartname) {
 		var barstep=(barlength/this.gradsteps);
 		var chart = d3.select("#chart_"+chartname);
 		console.log(barlength, barstep);
-		var svg=document.getElementById('chartbox2').children[0];
+		var svg=document.getElementById('chartbox1').children[0];
 		w=svg.getAttributeNS(null,'width');		
 		var imgwidth=parseInt(w.slice(0,w.length-2));
 		var transform=this.transform;
@@ -298,7 +300,9 @@ function Colormap (chartname) {
 
 
 
-	this.color_transform=function (transform, val){
+	this.color_transform=function (val){
+
+		var transform=this.transform;
 
 		if (val==0) return 0;
 		if (transform=='sqrt') {
@@ -322,15 +326,14 @@ function Colormap (chartname) {
 	}
 
 
-
-
-
 	this.init_colormap_inputs(chartname);
 	this.draw_colormap(chartname);
 
 }
 
 
+
+/* initializeer alle colormaps */
 
 	function init_colormaps()
 

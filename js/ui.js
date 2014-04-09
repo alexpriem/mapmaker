@@ -11,24 +11,16 @@ var varsel=varnames[2];
 var use_regiomin=true;
 var color=[];
 var canvas={};
-var chart_a;  // placeholders 
-var chart_b;
-var chart_c;
+
+var charts={};
+var timeseries={};
+
 var chart_width=0;
 var chart_height=0;
 var chartnames=['a','b','c'];
 var prev_chartcolors={};
 
 /* timeseries stuff */
-/* need timeseries class for all of this.  */
-var xScale={}; 
-var yScale={}; 
-var xAxis={}; 
-var yAxis={}; 
-var xGrid={}; 
-var yGrid={}; 
-
-var chart_colormap={};
 
 var ts_width=400;
 var ts_height=200;
@@ -38,8 +30,6 @@ var ts_sel_color={'a':'red','b':'blue','c':'black'};
 
 var chart_xpos=100;  // label position
 var chart_ypos=50;
-
-
 
 var datamin;
 var datamax;
@@ -66,13 +56,18 @@ function change_var () {
 	$('.varname').removeClass('active_selectie');
 	$(this).addClass('active_selectie');	
 	
+
 	varidx=varnames.indexOf(varsel);
 	minval=var_min[varidx];	
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
-	update_choropleth(current_ts);
-	if ((current_ts!='c') && (cmode!='tot')) update_choropleth('c');  // verschil updaten
-	update_ts(current_ts);	
+
+	var chart=charts[current_ts];
+	chart.update_choropleth();
+	if ((current_ts!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten //fixme: 'c' uit context halen.
+
+	var timeserie=timeseries[current_ts];
+	timeseries.update_ts();	
 	return false;
 }
 
@@ -237,7 +232,8 @@ function prepare_c_chart (){
 
 function set_shape_color_by_value (chartname, regio, val) {
 
-	var current_colormap=chart_colormap[chartname];
+
+	var current_colormap=this.colormap;
 
 	var tgradmin=current_colormap.tgradmin;
 	var tdelta=current_colormap.tdelta;
@@ -273,9 +269,11 @@ function update_selectie () {
 	selected_keyid=key2id[selected_keylabel];
 	console.log ('selectie=',selected_keyid);
 
-	update_choropleth (current_ts);	
-	if ((current_ts!='c') && (cmode!='tot')) update_choropleth('c');  // verschil updaten
-	update_ts(current_ts);	
+	var chart=charts[current_ts];
+	chart.update_choropleth ();	
+	if ((current_ts!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten FIXME: 'c' uit context halen
+	var timeserie=timeseries[current_ts];
+	timeserie.update_ts();	
 }
 
 
@@ -287,7 +285,7 @@ function change_cmode () {
 	$(this).addClass('active_selectie');
 	cmode=$(this).attr('data-tab');
 
-	update_choropleth('c');	
+	charts['c'].update_choropleth();	// FIXME: 'c' uit context halen
 }
 
 
@@ -304,8 +302,7 @@ function setup_vars () {
 			var varname=varnames[i];
 			html+='<li id="v_'+varname+'" data-varname="'+varname+'" class="varname">'+varname  + '</li>';
 		}	
-	}
-	
+	}	
 
 	$('#varlist').html(html);
 	$('.varname').on('click',change_var);	
@@ -318,8 +315,10 @@ function movie_begin () {
 	var current_ts=evt.target.getAttribute('data-ts');
 	datesel[current_ts]=dates[0];	
 	console.log ("date set to:",datesel[current_ts]);
-	update_choropleth(current_ts);
-	update_ts_sel(current_ts);
+	var chart=charts[current_ts];
+	var timeserie=timeseries[current_ts];
+	chart.update_choropleth();
+	timeserie.update_ts_sel();
 	return false;
 }
 
@@ -328,8 +327,10 @@ function movie_last () {
 	datesel[current_ts]=dates[dates.length-1];
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel[current_ts]);
-	update_choropleth(current_ts);
-	update_ts_sel(current_ts);
+	var chart=charts[current_ts];
+	var timeserie=timeseries[current_ts];
+	chart.update_choropleth();
+	timeserie.update_ts_sel();
 	return false;
 }
 
@@ -341,8 +342,10 @@ function movie_next () {
 	datesel[current_ts]=dates[nextdate];
 	//datesel_asdate=convert_date(datesel);
 	console.log ("date set to:",datesel[current_ts]);
-	update_choropleth(current_ts);
-	update_ts_sel(current_ts);
+	var chart=charts[current_ts];
+	var timeserie=timeseries[current_ts];	
+	chart.update_choropleth();
+	timeserie.update_ts_sel();
 	return false;
 }
 
@@ -353,8 +356,10 @@ function movie_prev () {
 		nextdate=0;	
 	datesel[current_ts]=dates[nextdate];
 	console.log ("date set to:",datesel[current_ts]);
-	update_choropleth(current_ts);
-	update_ts_sel(current_ts);
+	var chart=charts[current_ts];
+	var timeserie=timeseries[current_ts];	
+	chart.update_choropleth();
+	timeserie.update_ts_sel();
 	return false;
 }
 
@@ -379,9 +384,11 @@ function movie_nextframe() {
 		return;
 	}
 	datesel[current_ts]=dates[dateindex];
-	
-	update_choropleth(current_ts);
-	update_ts_sel(current_ts);
+
+	var chart=charts[current_ts];
+	var timeserie=timeseries[current_ts];	
+	chart.update_choropleth();
+	timeserie.update_ts_sel();
 	setTimeout (movie_nextframe,10);		
 	return false;	
 }
@@ -409,6 +416,9 @@ function init_movie_ui () {
 
 function init_svg(){
 	console.log('init_svg');
+
+
+	init_colormaps();
 	//$('.outline').on('click',click_regio);
 
 	$('#headertxt').html('<b>'+ label+ '</b>');
@@ -421,9 +431,16 @@ function init_svg(){
     $('#patch_6').remove();
 
 
-	chart_a=new Chart('a');
-	chart_b=new Chart('b');
-	chart_c=new Chart('c');
+	var chart_a=new Chart('a');
+	var chart_b=new Chart('b');
+	var chart_c=new Chart('c');
+	charts['a']=chart_a;
+	charts['b']=chart_b;
+	charts['c']=chart_c;
+
+	timeseries['a']=new TimeSeries('a');
+	timeseries['b']=new TimeSeries('b');
+	timeseries['c']=new TimeSeries('c');	
 
 // tab init
 	cmode='tot';
@@ -443,28 +460,17 @@ function init_svg(){
 
 	setup_vars();		
 	init_movie_ui();
-	init_colormaps();
 
-	chart_colormap['a']=new Colormap('a');
-	chart_colormap['b']=new Colormap('b');
-	chart_colormap['c']=new Colormap('c');
-	console.log(chart_colormap);
-
-
-
-	console.log(var_types.indexOf('date'));
-	if (var_types.indexOf('date')>=0) {
+	if (var_types.indexOf('date')>=0) {		// datum in data? verdergaan met initializatie. 
 		console.log('prep');
 		prep_data();		
-		chart_a.update_choropleth();
-		chart_b.update_choropleth();		
-		chart_c.update_choropleth();	
-		update_ts ('a');
-		update_ts ('b');
-		update_ts ('c');
-		
-	}
-	
+		charts['a'].update_choropleth();
+		charts['b'].update_choropleth();		
+		charts['c'].update_choropleth();	
+		timeseries['a'].update_ts ();
+		timeseries['b'].update_ts ();
+		timeseries['c'].update_ts ();		
+	}	
 
 }
 
