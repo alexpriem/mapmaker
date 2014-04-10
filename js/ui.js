@@ -319,7 +319,7 @@ function init_svg(){
 	console.log('init_svg');
 
 
-	init_colormaps();
+	init_colormap_sidebar_controls();
 	//$('.outline').on('click',click_regio);
 
 	$('#headertxt').html('<b>'+ label+ '</b>');

@@ -1,5 +1,9 @@
+var transforms=['linear','sqrt','log2','log10'];
+//function colormap_terrain() {};
+//function colormap_red() {};
+//function colormap_hot() {};
+//function colormap_coolwarm() {};
 
-var colormapname='hot';
 
 
 
@@ -12,23 +16,31 @@ var click_transform=function click_transform (evt) {
 	$(this).addClass('active_selectie');
 
 	console.log('new transform:',transform);
-	update_choropleth();
+	for (i=0; i<selected_charts.length; i++){
+		var chart=charts[selected_charts[i]];
+		var colormap=chart.colormap;
+		colormap.transform=new_transform;
+		colormap.calculate_colormap();
+		charts[selected_charts[i]].update_choropleth();
+	}
 	return false;
 }
 
 
 
 var click_colormap=function click_colormap (evt) {
-	colormapname=$(this).attr('data-colormap');
-	
-	console.log('click_colormap',colormapname);
-	colormap=colormaps[colormapname](gradsteps);
-	colormaplength=colormap.length-1;
-	console.log('click_colormap',colormapname,  colormaplength);
+	new_colormapname=$(this).attr('data-colormap');		
+	console.log('click_colormap',new_colormapname);	
+
+	for (i=0; i<selected_charts.length; i++){
+		var chart=charts[selected_charts[i]];
+		var gradsteps=chart.gradsteps;	
+		chart.colormap_data=colormap_function[new_colormapname](gradsteps);		
+		console.log('click_colormap',new_colormapname,  colormaplength);	
+		charts[selected_charts[i]].update_choropleth();
+		}
 	$('.colormapname ').removeClass('active_selectie');
-	$(this).addClass('active_selectie');
-	
-	update_choropleth();
+	$(this).addClass('active_selectie');		
 	return false;
 }
 
@@ -116,7 +128,7 @@ var colormap_hot=function colormap_hot(N){
 
 
 
-var colormaps={
+var colormap_functions={
 	'terrain':colormap_terrain,
 	'red':colormap_red,
 	'hot':colormap_hot,		
@@ -126,17 +138,21 @@ var colormaps={
 
 
 
-function Colormap (chartname) {
+function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax) {
 
 	this.chartname=chartname;
-	this.gradmax='max';
-	this.gradmin=0;
-	this.gradsteps=255;
+	this.gradmax=gradmax;
+	this.gradmin=gradmin;
+	this.gradsteps=gradsteps;
 	this.tgradmin=0;
 	this.tgradmax=0;
-	this.transform='log10';
-	this.colormapname='hot';
+	this.transform=transform;
+	this.colormapname=colormapname;
 
+
+	this.calculate_colormap=function () {
+		this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);
+	}
 
 	this.update_gradient=function (e) {
 
@@ -148,8 +164,8 @@ function Colormap (chartname) {
 			this.gradsteps=$('#edit_gradsteps_'+chartname).val();
 			this.gradmin=$('#edit_gradmin_'+chartname).val();
 			console.log('update_gradient:',this.gradmin, this.gradmax, this.gradsteps);
-			colormap=colormaps[colormapname](this.gradsteps);	
-			update_choropleth(chartname);	
+			this.colormap_data=colormap_functions[colormapname](this.gradsteps);	
+			charts[chartname].update_choropleth();	
 		}
 	}
 
@@ -210,7 +226,7 @@ function Colormap (chartname) {
 	this.draw_colormap=function () {
 
 		var chartname=this.chartname;
-		console.log("draw_colormap", colormaplength,chartname);
+		console.log("draw_colormap", this.chartname,this.colormaplength);
 
 
 		$('.colormap_'+chartname).remove();
@@ -222,6 +238,8 @@ function Colormap (chartname) {
 		w=svg.getAttributeNS(null,'width');		
 		var imgwidth=parseInt(w.slice(0,w.length-2));
 		var transform=this.transform;
+		var colormap_data=this.colormap_data;
+
 
 		chart.append("rect")
 			.attr("class","colormap_"+chartname)
@@ -234,7 +252,7 @@ function Colormap (chartname) {
 			.style("stroke-width","1px");
 		  
 		 for (i=1; i<this.gradsteps; i++) {
-		 	color=colormap[i];
+		 	color=this.colormap_data[i];
 			chart.append("rect")
 				.attr("class","colormap_"+chartname)
 				.attr("x",chart_width-24)
@@ -322,56 +340,49 @@ function Colormap (chartname) {
 	}
 
 
+	console.log(this.colormapname);
+	console.log(colormap_functions);
+	console.log(colormap_functions[this.colormapname]);
+	this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);
 	this.init_colormap_inputs();
 	this.draw_colormap();
-
+	this.colormaplength=this.colormap_data.length-1;
 }
 
 
 
-/* initializeer alle colormaps */
+/* initializeer sidebar */
 
-	function init_colormaps()
+	function init_colormap_sidebar_controls()
 
 	{
-	var transform='log10'; //FIXME
-	var gradsteps=255; //FIXME
-
-	console.log("init_colormaps");
-	var html='<li class="sel_heading"> Colormaps: </li>';
-	var selclas='';
-	for (var key in colormaps) {
-	  if (colormaps.hasOwnProperty(key)) {
-	  	if (key==colormapname) 
-	  		selclass='active_selectie';
-	  	else
-	  		selclass='';
-	    html+='<li class="colormapname '+selclass+'" id="colormap_'+key+'" data-colormap="'+key+'">'+key+'</li>';
-	  }
+		console.log("init_colormaps");
+		var html='<li class="sel_heading"> Colormaps: </li>';
+		var selclas='';
+		for (var key in colormap_functions) {
+	  		if (colormap_functions.hasOwnProperty(key)) {	  			
+	  			selclass='';
+	    		html+='<li class="colormapname '+selclass+'" id="colormap_'+key+'" data-colormap="'+key+'">'+key+'</li>';
+	  			}
 //	  colormap=colormaps[colormapname](gradsteps); 
 //	  colormaplength=colormap.length-1;
+			}
+
+
+		$('#sel_colormap').html(html);
+		$('.colormapname').on('click',click_colormap);
+		$('.colormapname').on('mouseenter ',enter_selectie);
+		$('.colormapname').on('mouseout ',leave_selectie);
+		//$('#colormapname_'+colormapname).addClass('active_selectie');
+
+		$('.transformname').on('mouseenter ',enter_selectie);
+		$('.transformname').on('mouseout ',leave_selectie);
+		$('.transformname').on('click',click_transform);
+		//$('#trans_'+transform).addClass('active_selectie');
+
+	 	console.log('init_colormap_sidebar_controls:done');
 	}
 
-
-	$('#sel_colormap').html(html);
-	$('.colormapname').on('click',click_colormap);
-	$('.colormapname').on('mouseenter ',enter_selectie);
-	$('.colormapname').on('mouseout ',leave_selectie);
-	$('#colormapname_'+colormapname).addClass('active_selectie');
-
-	$('.transformname').on('mouseenter ',enter_selectie);
-	$('.transformname').on('mouseout ',leave_selectie);
-	$('.transformname').on('click',click_transform);
-	$('#trans_'+transform).addClass('active_selectie');
-
-	 //for (colormapname in colormaps)  break;
-	 colormap=colormaps[colormapname](gradsteps);
-	 colormaplength=colormap.length-1;
-	 
-
-	 console.log('init_colormaps:',colormapname,colormaplength,gradsteps);
-
-	}
 
 
 

@@ -17,6 +17,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	this.datesel=default_datesel;
 	this.regiosel=default_regiosel;
 	this.varsel=default_varsel;  
+ 	this.colormapname='hot';
+ 	this.transform='log10';
+ 	this.gradmin=0;
+ 	this.gradsteps=40;
+ 	this.gradmax='max';
+
 
 	this.click_regio=function (evt) {
 
@@ -104,12 +110,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 
 	this.set_shape_color_by_value=function  (regio, val) {
 
-	var chartname=this.chartname;
-	var current_colormap=this.colormap;
+	var chartname=this.chartname;	
+	var colormap=this.colormap;
 
-	var tgradmin=current_colormap.tgradmin;
-	var tdelta=current_colormap.tdelta;
-	var gradsteps=current_colormap.gradsteps;
+	var tgradmin=colormap.tgradmin;
+	var tdelta=colormap.tdelta;
+	var gradsteps=colormap.gradsteps;
 //	console.log('set_shape_color_by_value:',chartname,regio,val);
 	colorindex=~~((val-tgradmin)/(tdelta)*gradsteps);  					
 	if (colorindex<0) colorindex=0;
@@ -117,7 +123,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	colorindex=parseInt(colorindex);
 
 		//console.log(minval, maxval, colorindex);
-	color=colormap[colorindex];					
+	color=colormap.colormap_data[colorindex];					
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
 	//console.log('set_shape_color_by_value:',regio,colorstring)
@@ -149,30 +155,30 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			return;
 		}
 
-		var current_colormap=this.colormap;
+		var colormap=this.colormap;
 	// voor entry: datesel bevat  huidige datumkeuze uit tab.
 
 		
-		var tgradmax=current_colormap.tgradmax;
-		if (current_colormap.gradmax=='max') {
+		var tgradmax=colormap.tgradmax;
+		if (colormap.gradmax=='max') {
 			tgradmax=datamax;      // datamax is afhankelijk van keuze chart (a/b/c)
 		} else {
-			tgradmax=current_colormap.gradmax;
+			tgradmax=colormap.gradmax;
 		}
-		var tgradmin=current_colormap.tgradmin;
-		if (current_colormap.gradmin=='min') {
+		var tgradmin=colormap.tgradmin;
+		if (colormap.gradmin=='min') {
 			tgradmin=datamin;      // datamin is afhankelijk van keuze chart
 		} else {
-			tgradmin=current_colormap.gradmin;
+			tgradmin=colormap.gradmin;
 		}
-		current_colormap.draw_colormap(chartname); 
+		colormap.draw_colormap(chartname); 
 
-		tgradmin=current_colormap.color_transform(tgradmin);
-		tgradmax=current_colormap.color_transform(tgradmax);
+		tgradmin=colormap.color_transform(tgradmin);
+		tgradmax=colormap.color_transform(tgradmax);
 		var tdelta=tgradmax-tgradmin;
-		current_colormap.tgradmin=tgradmin;
-		current_colormap.tgradmax=tgradmax;
-		current_colormap.tdelta=tdelta;
+		colormap.tgradmin=tgradmin;
+		colormap.tgradmax=tgradmax;
+		colormap.tdelta=tdelta;
 
 		console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
 		console.log("day/regio/var",this.datesel,this.regiosel,varsel, varidx);
@@ -227,7 +233,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 				if (val>chart_max) {
 					chart_max=val;
 				}
-				val=current_colormap.color_transform(val);		
+				val=colormap.color_transform(val);		
 				
 				this.set_shape_color_by_value (regio,val);
 			}
@@ -375,9 +381,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		}
 		$('#axes_3').on('click',this.click_regio);
 	}
-
 	
-	this.colormap=new Colormap(chartname);
+	this.colormap=new Colormap(chartname, this.colormapname, this.transform, this.gradmin,this.gradsteps,this.gradmax);
 	prev_regiocolors={};
 	for (j=regio_keys.length; j--;) {		
 		prev_regiocolors[regio_keys[chartname]]=0;
