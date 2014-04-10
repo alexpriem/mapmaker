@@ -50,6 +50,7 @@ var click_colormap=function click_colormap (evt) {
 
 
 
+
 var enter_selectie=function enter_selectie (evt) {
 	$(this).addClass('hover_selectie');
 }
@@ -167,6 +168,17 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			this.colormap_data=colormap_functions[colormapname](this.gradsteps);	
 			charts[chartname].update_choropleth();	
 		}
+	}
+
+
+	this.update_transform_status=function () {
+		$('.transformname').removeClass('active_selectie');
+
+		$('#transformname_'+this.transformname).addClass('active_selectie');
+	}
+	this.update_colormap_status=function () {
+		$('.colormapname').removeClass('active_selectie');
+		$('#colormap_'+this.colormapname).addClass('active_selectie');
 	}
 
 
