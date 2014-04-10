@@ -6,6 +6,8 @@ var regiosel=0;
 var varsel=varnames[2];
 
 
+var chartnames=['a','b','c'];
+var selected_charts=[chartnames[0]];  
 
 /* chart stuff */
 
@@ -13,10 +15,7 @@ var color=[];
 var charts={};
 var timeseries={};
 
-var chart_width=0;
-var chart_height=0;
-var chartnames=['a','b','c'];
-var prev_chartcolors={};
+
 
 /* timeseries stuff */
 
@@ -25,9 +24,6 @@ var ts_height=200;
 var ts_xpos=ts_width/2;  // label position
 var ts_ypos=10;
 var ts_sel_color={'a':'red','b':'blue','c':'black'};
-
-var chart_xpos=100;  // label position
-var chart_ypos=50;
 
 var datamin;
 var datamax;
@@ -336,16 +332,16 @@ function init_svg(){
     $('#patch_6').remove();
 
 
-	var chart_a=new Chart('a');
-	var chart_b=new Chart('b');
-	var chart_c=new Chart('c');
+	var chart_a=new Chart('a',data[0][0],data[0][1],0);
+	var chart_b=new Chart('b',data[0][0],data[0][1],0);
+	var chart_c=new Chart('c',data[0][0],data[0][1],0);
 	charts['a']=chart_a;
 	charts['b']=chart_b;
 	charts['c']=chart_c;
 
-	timeseries['a']=new TimeSeries('a');
-	timeseries['b']=new TimeSeries('b');
-	timeseries['c']=new TimeSeries('c');	
+	timeseries['a']=new TimeSeries('a',data[0][0],data[0][1],0);
+	timeseries['b']=new TimeSeries('b',data[0][0],data[0][1],0);
+	timeseries['c']=new TimeSeries('c',data[0][0],data[0][1],0);	
 
 // tab init
 	cmode='tot';

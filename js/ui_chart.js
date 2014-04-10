@@ -1,27 +1,40 @@
 
 //depends on colormap.js for colormap
 
+var prev_chartcolors={};   //internal backbuffer.
+var chart_xpos=100;  // label position
+var chart_ypos=50;
+var chart_width=0;
+var chart_height=0;
+
+
 
 // should include function to other charts (a/b/c)
 
-function Chart (chartname) {
+function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 
 	this.chartname=chartname;	
-	this.datesel=null;
-	this.regiosel=null;
+	this.datesel=default_datesel;
+	this.regiosel=default_regiosel;
+	this.varsel=default_varsel;  
 
 	this.click_regio=function (evt) {
 
 		this.regiosel=evt.target.getAttribute('data-regio');
 		var clicked_id=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
 		var chartname=clicked_id.slice(0,1);
+
+		// TESTME -- handling multiple selections.
+		selected_charts=[chartname];
+
 		clickedregio=clicked_id.split('_')[0].slice(1);
 		regiolabel=regio_label2key[clickedregio];
 		console.log('click_regio:',clickedregio,this.regiosel, chartname);		
 	//	$('#label_'+chartname).text(regiolabel);
 		$('#svg_ts'+chartname).remove();		
+		var timeserie=timeseries[chartname];
 		timeserie.regiosel=this.regiosel;		
-		timeserie[chartname].update_ts();
+		timeserie.update_ts();
 		return false;
 		}
 
@@ -127,6 +140,8 @@ function Chart (chartname) {
 
 		var records, color, colorstring;
 		var chartname=this.chartname;
+		var datesel=this.datesel;
+		var varsel=this.varsel;
 
 		console.log('update_choropleth:',chartname);
 		if (this.datesel==null) {

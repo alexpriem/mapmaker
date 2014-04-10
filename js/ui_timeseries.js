@@ -1,9 +1,15 @@
 
-function TimeSeries(chartname) {
+function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel) {
+
 	this.chartname=chartname;
 	this.use_regiomin=true;
-	this.datesel=null;
-	this.regiosel=null;
+	this.datesel=default_datesel;
+	this.regiosel=default_regiosel;
+	this.varsel=default_varsel;
+
+
+
+
 
 	this.click_ts=function () {
 
@@ -73,9 +79,11 @@ function TimeSeries(chartname) {
 	this.update_ts=function  () {
 
 		var chartname=this.chartname;
-
+		var regiosel=this.regiosel;
+		var varsel=this.varsel;
 		console.log('update_ts:', chartname, regiosel, varsel);
 		
+
 		var svg_ts='#svg_ts'+chartname;
 		$(svg_ts).remove();
 		$('#ts_line_'+chartname).remove();
@@ -89,7 +97,6 @@ function TimeSeries(chartname) {
 
 		var xScale=this.xScale=d3.time.scale();
 		var yScale=this.yScale=d3.scale.linear();
-		console.log()
 
 		if (chartname=='c') {
 			var miny=total_date_min;
@@ -250,5 +257,8 @@ function TimeSeries(chartname) {
 
 		  this.update_ts_sel();
 		}
+
+
+	// initializatie timeseries		
 
 }  // Timeseries
