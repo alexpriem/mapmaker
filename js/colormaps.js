@@ -16,12 +16,12 @@ var click_transform=function click_transform (evt) {
 	$(this).addClass('active_selectie');
 
 	console.log('new transform:',transform);
-	for (i=0; i<selected_charts.length; i++){
+	for (var i=0; i<selected_charts.length; i++){
 		var chart=charts[selected_charts[i]];
 		var colormap=chart.colormap;
 		colormap.transform=new_transform;
 		colormap.calculate_colormap();
-		charts[selected_charts[i]].update_choropleth();
+		chart.update_choropleth();
 	}
 	return false;
 }
@@ -32,12 +32,12 @@ var click_colormap=function click_colormap (evt) {
 	new_colormapname=$(this).attr('data-colormap');		
 	console.log('click_colormap',new_colormapname);	
 
-	for (i=0; i<selected_charts.length; i++){
+	for (var i=0; i<selected_charts.length; i++){
 		var chart=charts[selected_charts[i]];
 		var gradsteps=chart.gradsteps;	
-		chart.colormap_data=colormap_function[new_colormapname](gradsteps);		
-		console.log('click_colormap',new_colormapname,  colormaplength);	
-		charts[selected_charts[i]].update_choropleth();
+		chart.colormap_data=colormap_functions[new_colormapname](gradsteps);		
+		console.log('click_colormap',new_colormapname);	
+		chart.update_choropleth();
 		}
 	$('.colormapname ').removeClass('active_selectie');
 	$(this).addClass('active_selectie');		
