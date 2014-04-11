@@ -339,6 +339,9 @@ function init_svg(){
 	console.log('init_svg');
 
 
+	$('.selectie_header').on('click',set_selection);
+ 	update_selection ();
+
 	init_colormap_sidebar_controls();
 	//$('.outline').on('click',click_regio);
 
@@ -393,8 +396,7 @@ function init_svg(){
 		timeseries['c'].update_ts ();		
 	}	
 
-	$('.selectie_header').on('click',set_selection);
- 	update_selection ();
+	update_colormap_sidebar();
 }
 
 

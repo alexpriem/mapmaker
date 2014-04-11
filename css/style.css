@@ -246,3 +246,11 @@ margin: 0 auto;
 #ts1,#ts2, #ts3{
 display:inline;
 }
+
+
+.selectie_header {
+height:20px;
+}
+.active {
+background-color: SteelBlue;
+}

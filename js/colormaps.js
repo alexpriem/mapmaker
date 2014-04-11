@@ -46,6 +46,14 @@ var click_colormap=function click_colormap (evt) {
 
 
 
+function update_colormap_sidebar()  {
+	console.log("update_colormap_sidebar");
+	if (selected_charts.length==1) {
+		charts[selected_charts[0]].colormap.update_sidebar_transformname();
+		charts[selected_charts[0]].colormap.update_sidebar_colormapname();
+	} // iets anders doen voor lengte>1. (?)
+}
+
 
 
 
@@ -171,12 +179,12 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	}
 
 
-	this.update_transform_status=function () {
+	this.update_sidebar_transformname=function () {
+		console.log('update_sidebar_transformname:',this.transform);
 		$('.transformname').removeClass('active_selectie');
-
-		$('#transformname_'+this.transformname).addClass('active_selectie');
+		$('#trans_'+this.transform).addClass('active_selectie');
 	}
-	this.update_colormap_status=function () {
+	this.update_sidebar_colormapname=function () {
 		$('.colormapname').removeClass('active_selectie');
 		$('#colormap_'+this.colormapname).addClass('active_selectie');
 	}
