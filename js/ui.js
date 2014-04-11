@@ -212,7 +212,7 @@ function setup_vars () {
 	$('#v_'+varsel).addClass('active_selectie');
 }
 
-function movie_begin () {
+function movie_begin (evt) {
 	var current_ts=evt.target.getAttribute('data-ts');
 	datesel[current_ts]=dates[0];	
 	console.log ("date set to:",datesel[current_ts]);
@@ -223,7 +223,7 @@ function movie_begin () {
 	return false;
 }
 
-function movie_last () {
+function movie_last (evt) {
 	var current_ts=evt.target.getAttribute('data-ts');
 	datesel[current_ts]=dates[dates.length-1];
 	//datesel_asdate=convert_date(datesel);
@@ -235,7 +235,7 @@ function movie_last () {
 	return false;
 }
 
-function movie_next () {
+function movie_next (evt) {
 	var current_ts=evt.target.getAttribute('data-ts');
 	var nextdate=dates.indexOf(datesel)+1;
 	if (nextdate>=dates.length)
@@ -250,7 +250,7 @@ function movie_next () {
 	return false;
 }
 
-function movie_prev () {
+function movie_prev (evt) {
 	var current_ts=evt.target.getAttribute('data-ts');	
 	var nextdate=dates.indexOf(datesel)-1;
 	if (nextdate<0)
@@ -264,7 +264,7 @@ function movie_prev () {
 	return false;
 }
 
-function movie_start () {
+function movie_start (evt) {
 	console.log("start player");
 	dateindex=dates.indexOf(datesel);
 
@@ -273,7 +273,7 @@ function movie_start () {
 	return false;
 }
 
-function movie_nextframe() {
+function movie_nextframe(evt) {
 
 	var current_ts=evt.target.getAttribute('data-ts');
 	console.log('nextframe:',dateindex,stop_player);
@@ -295,7 +295,7 @@ function movie_nextframe() {
 }
 
 
-function movie_pause () {
+function movie_pause (evt) {
 	stop_player=true;
 	return false;
 }
@@ -313,6 +313,26 @@ function init_movie_ui () {
 
 
 
+function update_selection () {
+
+	$('.selectie_header').removeClass('active');
+
+	for (i=0; i<selected_charts.length;i++) {
+		console.log('set selectie:',selected_charts[i]);
+		$('#header_'+selected_charts[i]).addClass('active');
+		}
+}
+
+
+function set_selection (evt) {
+
+	console.log ('set_selection');
+// TODO: handle dragging -> multiple selections
+	var a=evt.target.getAttribute('data-selectie')
+	console.log(a);
+	selected_charts=[evt.target.getAttribute('data-selectie')];
+	update_selection();
+}
 
 
 function init_svg(){
@@ -373,6 +393,8 @@ function init_svg(){
 		timeseries['c'].update_ts ();		
 	}	
 
+	$('.selectie_header').on('click',set_selection);
+ 	update_selection ();
 }
 
 
