@@ -11,11 +11,11 @@ var transforms=['linear','sqrt','log2','log10'];
 
 var click_transform=function click_transform (evt) {
 
-	transform=$(this).attr('data-transform');
+	var new_transform=$(this).attr('data-transform');
 	$('.transformname ').removeClass('active_selectie');
 	$(this).addClass('active_selectie');
 
-	console.log('new transform:',transform);
+	console.log('new transform:',new_transform);
 	for (var i=0; i<selected_charts.length; i++){
 		var chart=charts[selected_charts[i]];
 		var colormap=chart.colormap;
@@ -129,12 +129,62 @@ return cmap;
 }
 
 
-var colormap_red=function colormap_red(N){
-	return build_colormap_simple(['white','red'],N);
+
+
+var colormap_hot2=function colormap_hot2(N){    
+	return build_colormap_bezier (['white', 'yellow', 'red', 'black'],N);
 }
 
-var colormap_hot=function colormap_hot(N){    
-	return build_colormap_bezier (['white', 'yellow', 'red', 'black'],N);
+
+
+var colormap_blue=function colormap_blue(N){
+    
+scale=chroma.scale(['white', '#d2ecf7','#9cd7ef','#00a1cd','#008dd1','#004b9a', '#002c61']).correctLightness(true);
+cmap=[];
+frac=1.0/N;
+for (i=0; i<N; i++){
+	rgb=scale(i*frac).rgb();
+	cmap.push([parseInt(rgb[0]),parseInt(rgb[1]),parseInt(rgb[2])]);
+}
+return cmap;
+}
+
+var colormap_red=function colormap_red(N){
+    
+scale=chroma.scale(['white', '#fee4c7','#fccb8d','#f39200','#ea5906','#e4002c', '#af081f']).correctLightness(true);
+cmap=[];
+frac=1.0/N;
+for (i=0; i<N; i++){
+	rgb=scale(i*frac).rgb();
+	cmap.push([parseInt(rgb[0]),parseInt(rgb[1]),parseInt(rgb[2])]);
+}
+return cmap;
+}
+
+var colormap_green=function colormap_green(N){
+    
+scale=chroma.scale(['white', '#ecf2d0','#dae49b','#afcb05','#85bc22','#00a139', '#007f2c']).correctLightness(true);
+cmap=[];
+frac=1.0/N;
+for (i=0; i<N; i++){
+	rgb=scale(i*frac).rgb();
+	cmap.push([parseInt(rgb[0]),parseInt(rgb[1]),parseInt(rgb[2])]);
+}
+return cmap;
+}
+
+
+
+var colormap_hot=function colormap_hot(N){
+    
+scale=chroma.scale(['white', '#ffce00', '#ffae00', 'black']).correctLightness(true);
+cmap=[];
+frac=1.0/N;
+for (i=0; i<N; i++){
+	rgb=scale(i*frac).rgb();
+	cmap.push([parseInt(rgb[0]),parseInt(rgb[1]),parseInt(rgb[2])]);
+}
+return cmap;
 }
 
 
@@ -142,8 +192,11 @@ var colormap_hot=function colormap_hot(N){
 
 var colormap_functions={
 	'terrain':colormap_terrain,
+	'blue':colormap_blue,
+	'green':colormap_green,
 	'red':colormap_red,
-	'hot':colormap_hot,		
+	'hot':colormap_hot,
+	'hot2':colormap_hot2,		
 	'coolwarm':colormap_coolwarm,	
   };
 
@@ -166,18 +219,27 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);
 	}
 
-	this.update_gradient=function (e) {
+	this.update_gradient=function (evt) {
 
 		
 		console.log('update_gradient:');
-		if (e.keyCode == '13') {
-			var chartname=this.chartname;
-			this.gradmax=$('#edit_gradmax_'+chartname).val();
-			this.gradsteps=$('#edit_gradsteps_'+chartname).val();
-			this.gradmin=$('#edit_gradmin_'+chartname).val();
-			console.log('update_gradient:',this.gradmin, this.gradmax, this.gradsteps);
-			this.colormap_data=colormap_functions[colormapname](this.gradsteps);	
-			charts[chartname].update_choropleth();	
+		if (evt.keyCode == '13') {			
+			var chartname=evt.target.getAttribute('data-ts');
+			var chart=charts[chartname];
+			var colormap=chart.colormap;
+			var val=$('#edit_gradsteps_'+chartname).val();
+			if (val<1) { 
+					$('#edit_gradsteps_'+chartname).css('background','red');
+				}
+				else{
+				 colormap.gradsteps=val;
+				 $('#edit_gradsteps_'+chartname).css('background','white');
+			}
+			colormap.gradmax=$('#edit_gradmax_'+chartname).val();			
+			colormap.gradmin=$('#edit_gradmin_'+chartname).val();
+			console.log('update_gradient:',chart.gradmin, chart.gradmax, chart.gradsteps);
+			colormap.calculate_colormap();
+			chart.update_choropleth();	
 		}
 	}
 
@@ -206,6 +268,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		//	svg.setAttributeNS(null,'width',(imgwidth+200)+'pt');
 			
 			
+
 			offsetx=-50;
 			chart.append("foreignObject")
 			  .attr("width", 150)
@@ -214,7 +277,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			  .attr("y",100)
 			  .append("xhtml:body")
 			  .style("font", "14px Helvetica")
-			  .html("<label> max:&nbsp;</label> <input type='text' id='edit_gradmax'name='gradmax' value='"+this.gradmax+"' size=4/>");
+			  .html("<label> max:&nbsp;</label> <input type='text' id='edit_gradmax_"+chartname+"' data-ts='"+chartname+"' name='gradmax' value='"+this.gradmax+"' size=4/>");
 
 			chart.append("foreignObject")
 			  .attr("width", 150)
@@ -223,7 +286,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			  .attr("y",180)
 			  .append("xhtml:body")
 			  .style("font", "14px Helvetica")
-			  .html("<label> step:</label> <input type='text' id='edit_gradsteps'  name='gradsteps' value='"+this.gradsteps+"' size=4/>");
+			  .html("<label> step:</label> <input type='text' id='edit_gradsteps_"+chartname+"' data-ts='"+chartname+"' name='gradsteps' value='"+this.gradsteps+"' size=4/>");
 
 			chart.append("foreignObject")
 			  .attr("width", 150)
@@ -232,16 +295,16 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			  .attr("y",270)
 			  .append("xhtml:body")
 			  .style("font", "14px Helvetica")
-			  .html("<label> min:&nbsp;</label> <input type='text' id='edit_gradmin'  name='gradmin' value='"+this.gradmin+"' size=4/>");
+			  .html("<label> min:&nbsp;</label> <input type='text' id='edit_gradmin_"+chartname+"' data-ts='"+chartname+"' name='gradmin' value='"+this.gradmin+"' size=4/>");
 		} 
 	 		
-		$("#edit_gradmax").val(this.gradmax);
-		$("#edit_gradsteps").val(this.gradsteps);
-		$("#edit_gradmin").val(this.gradmin);
+		$("#edit_gradmax_"+chartname).val(this.gradmax);
+		$("#edit_gradsteps_"+chartname).val(this.gradsteps);
+		$("#edit_gradmin_"+chartname).val(this.gradmin);
 
-		$("#edit_gradmax").on('keydown',this.update_gradient);
-		$("#edit_gradsteps").on('keydown',this.update_gradient);
-		$("#edit_gradmin").on('keydown',this.update_gradient);
+		$("#edit_gradmax_"+chartname).on('keydown',this.update_gradient);
+		$("#edit_gradsteps_"+chartname).on('keydown',this.update_gradient);
+		$("#edit_gradmin_"+chartname).on('keydown',this.update_gradient);
 
 	}
 
@@ -249,7 +312,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	this.draw_colormap=function () {
 
 		var chartname=this.chartname;
-		console.log("draw_colormap", this.chartname,this.colormaplength);
+		console.log("draw_colormap", this.chartname, this.colormapname, this.transform, this.gradsteps);
 
 
 		$('.colormap_'+chartname).remove();
@@ -274,7 +337,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			.style("stroke","black")
 			.style("stroke-width","1px");
 		  
-		 for (i=1; i<this.gradsteps; i++) {
+		 for (i=0; i<this.gradsteps; i++) {
 		 	color=this.colormap_data[i];
 			chart.append("rect")
 				.attr("class","colormap_"+chartname)
@@ -304,12 +367,12 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	  this.colorScale=colorScale;
 
 	  console.log('Colorscale, transform:', this.transform);
-	  console.log('Colorscale, datadomain',this.datamin, this.datamax);
+	  //console.log('Colorscale, datadomain',this.datamin, this.datamax);
 	  console.log('Colorscale, domain',this.tgradmin, this.tgradmax);
 	  tgradmin=1;
 	  colorScale.domain([this.tgradmax, this.tgradmin])
 	  			.range([0,barlength])
-	  			.ticks(1);
+	  			.ticks(5);
 
 
 
@@ -368,8 +431,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	console.log(colormap_functions[this.colormapname]);
 	this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);
 	this.init_colormap_inputs();
-	this.draw_colormap();
-	this.colormaplength=this.colormap_data.length-1;
+	this.draw_colormap();	
 }
 
 
@@ -388,7 +450,6 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	    		html+='<li class="colormapname '+selclass+'" id="colormap_'+key+'" data-colormap="'+key+'">'+key+'</li>';
 	  			}
 //	  colormap=colormaps[colormapname](gradsteps); 
-//	  colormaplength=colormap.length-1;
 			}
 
 

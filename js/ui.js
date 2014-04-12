@@ -28,7 +28,7 @@ var ts_sel_color={'a':'red','b':'blue','c':'black'};
 var datamin;
 var datamax;
 
-var current_ts='a';
+var current_chart='a';
 var cmode='tot';
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
@@ -51,11 +51,11 @@ function change_var () {
 	maxval=var_max[varidx];	// FIXME: transform bijhouden.	
 	prep_data();
 
-	var chart=charts[current_ts];
+	var chart=charts[current_chart];
 	chart.update_choropleth();
-	if ((current_ts!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten //fixme: 'c' uit context halen.
+	if ((current_chart!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten //fixme: 'c' uit context halen.
 
-	var timeserie=timeseries[current_ts];
+	var timeserie=timeseries[current_chart];
 	timeseries.update_ts();	
 	return false;
 }
@@ -170,10 +170,10 @@ function update_selectie () {
 	selected_keyid=key2id[selected_keylabel];
 	console.log ('selectie=',selected_keyid);
 
-	var chart=charts[current_ts];
+	var chart=charts[current_chart];
 	chart.update_choropleth ();	
-	if ((current_ts!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten FIXME: 'c' uit context halen
-	var timeserie=timeseries[current_ts];
+	if ((current_chart!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten FIXME: 'c' uit context halen
+	var timeserie=timeseries[current_chart];
 	timeserie.update_ts();	
 }
 
@@ -213,52 +213,52 @@ function setup_vars () {
 }
 
 function movie_begin (evt) {
-	var current_ts=evt.target.getAttribute('data-ts');
-	datesel[current_ts]=dates[0];	
-	console.log ("date set to:",datesel[current_ts]);
-	var chart=charts[current_ts];
-	var timeserie=timeseries[current_ts];
+	var current_chart=evt.target.getAttribute('data-ts');
+	datesel[current_chart]=dates[0];	
+	console.log ("date set to:",datesel[current_chart]);
+	var chart=charts[current_chart];
+	var timeserie=timeseries[current_chart];
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
 }
 
 function movie_last (evt) {
-	var current_ts=evt.target.getAttribute('data-ts');
-	datesel[current_ts]=dates[dates.length-1];
+	var current_chart=evt.target.getAttribute('data-ts');
+	datesel[current_chart]=dates[dates.length-1];
 	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel[current_ts]);
-	var chart=charts[current_ts];
-	var timeserie=timeseries[current_ts];
+	console.log ("date set to:",datesel[current_chart]);
+	var chart=charts[current_chart];
+	var timeserie=timeseries[current_chart];
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
 }
 
 function movie_next (evt) {
-	var current_ts=evt.target.getAttribute('data-ts');
+	var current_chart=evt.target.getAttribute('data-ts');
 	var nextdate=dates.indexOf(datesel)+1;
 	if (nextdate>=dates.length)
 		nextdate=dates.length;
-	datesel[current_ts]=dates[nextdate];
+	datesel[current_chart]=dates[nextdate];
 	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel[current_ts]);
-	var chart=charts[current_ts];
-	var timeserie=timeseries[current_ts];	
+	console.log ("date set to:",datesel[current_chart]);
+	var chart=charts[current_chart];
+	var timeserie=timeseries[current_chart];	
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
 }
 
 function movie_prev (evt) {
-	var current_ts=evt.target.getAttribute('data-ts');	
+	var current_chart=evt.target.getAttribute('data-ts');	
 	var nextdate=dates.indexOf(datesel)-1;
 	if (nextdate<0)
 		nextdate=0;	
-	datesel[current_ts]=dates[nextdate];
-	console.log ("date set to:",datesel[current_ts]);
-	var chart=charts[current_ts];
-	var timeserie=timeseries[current_ts];	
+	datesel[current_chart]=dates[nextdate];
+	console.log ("date set to:",datesel[current_chart]);
+	var chart=charts[current_chart];
+	var timeserie=timeseries[current_chart];	
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
@@ -275,7 +275,7 @@ function movie_start (evt) {
 
 function movie_nextframe(evt) {
 
-	var current_ts=evt.target.getAttribute('data-ts');
+	var current_chart=evt.target.getAttribute('data-ts');
 	console.log('nextframe:',dateindex,stop_player);
 	if (stop_player) return;
 	dateindex+=1;
@@ -284,10 +284,10 @@ function movie_nextframe(evt) {
 		stop_player=true;
 		return;
 	}
-	datesel[current_ts]=dates[dateindex];
+	datesel[current_chart]=dates[dateindex];
 
-	var chart=charts[current_ts];
-	var timeserie=timeseries[current_ts];	
+	var chart=charts[current_chart];
+	var timeserie=timeseries[current_chart];	
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	setTimeout (movie_nextframe,10);		

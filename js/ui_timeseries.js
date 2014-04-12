@@ -201,11 +201,11 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 			if (chartname=='c') {
 				if (cmode=='tot') {
 					regioreeks=total_date;
-					ts_label='Totaal';
+					ts_label='Totaal (regios)';
 				}
 				if (cmode=='totsel') {
 					regioreeks=total_date;
-					ts_label='Totaal'+ts_label;
+					ts_label='Totaal '+ts_label;
 				}
 				if (cmode=='diff') {
 					regioreeks=total_date;

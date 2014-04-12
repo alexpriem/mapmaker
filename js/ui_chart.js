@@ -17,7 +17,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	this.datesel=default_datesel;
 	this.regiosel=default_regiosel;
 	this.varsel=default_varsel;  
- 	this.colormapname='hot';
+ 	this.colormapname='hot2';
  	this.transform='log10';
  	this.gradmin=0;
  	this.gradsteps=40;
@@ -253,10 +253,10 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		
 		if (chartname=='c') { 
 			if (cmode=='tot') {
-				datelabel='Totaal';
+				datelabel='Totaal (periode)';
 			}
 			if (cmode=='totsel') {
-				datelabel='Totaal';
+				datelabel='Totaal sel (periode)';
 			}
 			if (cmode=='diff') {
 				datelabel='Verschil';
