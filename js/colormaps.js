@@ -20,6 +20,7 @@ var click_transform=function click_transform (evt) {
 		var chart=charts[selected_charts[i]];
 		var colormap=chart.colormap;
 		colormap.transform=new_transform;
+		//chart.colormap_data=colormap_functions[new_colormapname](colormap.gradsteps);		
 		colormap.calculate_colormap();
 		chart.update_choropleth();
 	}
@@ -34,8 +35,10 @@ var click_colormap=function click_colormap (evt) {
 
 	for (var i=0; i<selected_charts.length; i++){
 		var chart=charts[selected_charts[i]];
-		var gradsteps=chart.gradsteps;	
-		chart.colormap_data=colormap_functions[new_colormapname](gradsteps);		
+		var colormap=chart.colormap;		
+		colormap.colormapname=new_colormapname;
+		colormap.calculate_colormap();
+		//chart.colormap_data=colormap_functions[new_colormapname](colormap.gradsteps);		
 		console.log('click_colormap',new_colormapname);	
 		chart.update_choropleth();
 		}
