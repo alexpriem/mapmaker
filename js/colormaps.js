@@ -74,17 +74,6 @@ var leave_selectie=function enter_selectie (evt) {
 
 
 
-function build_colormap_simple (colors, N) {
-
-	scale=chroma.scale(colors).correctLightness(true);
-	cmap=[];
-	frac=1.0/N;
-	for (i=0; i<N; i++){
-		rgb=scale(i*frac).rgb();
-		cmap.push([parseInt(rgb[0]),parseInt(rgb[1]),parseInt(rgb[2])]);
-	}
-	return cmap;
-}
 
 
 function build_colormap_bezier (colors, N) {
@@ -314,8 +303,8 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		var chartname=this.chartname;
 		console.log("draw_colormap", this.chartname, this.colormapname, this.transform, this.gradsteps);
 
-
-		$('.colormap_'+chartname).remove();
+		var colormapclassname='colormap_'+chartname;
+		$('.'+colormapclassname).remove();		
 		var barlength=chart_height/3;
 		var barstep=(barlength/this.gradsteps);
 		var chart = d3.select("#chart_"+chartname);
@@ -328,7 +317,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 
 
 		chart.append("rect")
-			.attr("class","colormap_"+chartname)
+			.attr("class",colormapclassname)
 			.attr("x",chart_width-25)
 			.attr("y",100)
 			.attr("width",20)
@@ -337,12 +326,15 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			.style("stroke","black")
 			.style("stroke-width","1px");
 		  
+		  console.log("colormap_data:",this.colormap_data)
 		 for (i=0; i<this.gradsteps; i++) {
+
 		 	color=this.colormap_data[i];
+		// 	console.log(i,color);
 			chart.append("rect")
-				.attr("class","colormap_"+chartname)
+				.attr("class",colormapclassname)
 				.attr("x",chart_width-24)
-				.attr("y",100+barlength-barstep*i-1)
+				.attr("y",100+barlength-barstep*i-barstep)
 				.attr("width",18)
 				.attr("height",barstep)
 				.style("fill","rgb("+color[0]+","+color[1]+","+color[2]+")")
@@ -372,7 +364,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	  tgradmin=1;
 	  colorScale.domain([this.tgradmax, this.tgradmin])
 	  			.range([0,barlength])
-	  			.ticks(5);
+	  			.ticks(1);
 
 
 
@@ -392,7 +384,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 
 	  scalepos=chart_width-25;
 	  chart.append("g")
-	        .attr("class","yaxis colormap")
+	        .attr("class","yaxis "+colormapclassname)
 	        .attr("transform","translate("+scalepos+",100)")
 	        .call(colorAxis);        	 
 	}
