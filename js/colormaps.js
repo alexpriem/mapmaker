@@ -22,6 +22,7 @@ var click_transform=function click_transform (evt) {
 		colormap.transform=new_transform;
 		//chart.colormap_data=colormap_functions[new_colormapname](colormap.gradsteps);		
 		colormap.calculate_colormap();
+		chart.forced_update=true;
 		chart.update_choropleth();
 	}
 	return false;
@@ -40,6 +41,7 @@ var click_colormap=function click_colormap (evt) {
 		colormap.calculate_colormap();
 		//chart.colormap_data=colormap_functions[new_colormapname](colormap.gradsteps);		
 		console.log('click_colormap',new_colormapname);	
+		chart.forced_update=true;
 		chart.update_choropleth();
 		}
 	$('.colormapname ').removeClass('active_selectie');
@@ -228,7 +230,8 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			colormap.gradmin=$('#edit_gradmin_'+chartname).val();
 			console.log('update_gradient:',chart.gradmin, chart.gradmax, chart.gradsteps);
 			colormap.calculate_colormap();
-			chart.update();	
+			chart.forced_update=true;
+			chart.update_choropleth();	
 		}
 	}
 
@@ -326,7 +329,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			.style("stroke","black")
 			.style("stroke-width","1px");
 		  
-		  console.log("colormap_data:",this.colormap_data)
+		  //console.log("colormap_data:",this.colormap_data)
 		 for (i=0; i<this.gradsteps; i++) {
 
 		 	color=this.colormap_data[i];

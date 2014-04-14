@@ -122,7 +122,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	if (colorindex>=gradsteps) colorindex=gradsteps-1;			
 	colorindex=parseInt(colorindex);
 
-	//	console.log('set_shape_color_by_value:', val, colorindex);
+	console.log('set_shape_color_by_value:', val, colorindex, tgradmin, tdelta);
 	color=colormap.colormap_data[colorindex];					
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
@@ -182,6 +182,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		var chartname=this.chartname;
 		var datesel=this.datesel;
 		var varsel=this.varsel;
+
 
 		console.log('update_choropleth:',chartname);
 		if (this.datesel==null) {
@@ -252,19 +253,21 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		for (i=0; i<regio_keys.length; i++) {
 			new_regiocolors[regio_keys[i]]=0;
 		}
-		
+
+			// daadwerkelijk inkleuren van kaart begint hier.
+
+		var forced_update=this.forced_update;		
 		for (rownr=0; rownr<this.chart_data.length; rownr++){	
 			row=this.chart_data[rownr];				
 			var regio=row[regioidx];			
 			val=row[varidx];
-			
+				
 		//	console.log(regio, val);				
 			prev_val=prev_regiocolors[regio];   // kleur zetten als 
 			                                    // nieuwe waarde ongelijk vorige waarde
-			                                    
-			if ((val!=prev_val)) {			
-				//console.log('regio,p,v',regio,prev_val,val);
-				new_regiocolors[regio]=val;			
+			new_regiocolors[regio]=val; 
+			if ((forced_update) || (val!=prev_val)) {
+				//console.log('regio,p,v',regio,prev_val,val);							
 				val=colormap.color_transform(val);						
 				this.set_shape_color_by_value (regio,val);
 			}
@@ -273,9 +276,11 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		for (var regiokey in prev_regiocolors) {
 				prev_val=prev_regiocolors[regiokey];
 				val=new_regiocolors[regiokey];
-			//	console.log("Prev_regio",regiokey,prev_val,val);
-				if ((typeof(val)=='undefined') || (val==0)) {
-					//console.log('undefined, dus wissen:',regiokey, val,prev_val)
+				//console.log("Prev_regio",regiokey,prev_val,val);
+				//if ((typeof(val)=='undefined') || (val==0)) {
+				if ((typeof(val)=='undefined') || ((val==0) && (prev_val!=0))) {
+					console.log("Prev_regio:",regiokey,prev_val,val);
+					//console.log('undefined/0, dus wissen:',regiokey, val,prev_val)
 					this.set_shape_color_by_value (regiokey, 0);
 				}
 			}			
@@ -315,7 +320,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	  		.attr("font-size", "16px")
 	  		.attr("font-weight", "bold")
 	        .text(datelabel);
-   
+   		this.forced_update=false;  // want net update gedaan.
 	}  // update_chart
 
 

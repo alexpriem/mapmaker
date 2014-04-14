@@ -7,7 +7,8 @@ var varsel=varnames[2];
 
 
 var chartnames=['a','b','c'];
-var selected_charts=[chartnames[0]];  
+var selected_charts=[chartnames[0]];   // bovenste regel, meerdere sel
+var selected_chart=chartnames[0];    // onderste regel, enkele sel.
 
 /* chart stuff */
 
@@ -315,19 +316,36 @@ function init_movie_ui () {
 
 function update_selection () {
 
-	$('.selectie_header').removeClass('active');
+	$('.selectie_header').removeClass('active');				
+	$('#header_'+selected_chart).addClass('active');
+	console.log('update_selection:',selected_chart);
+//	charts[chartname].update_choropleth();
+//	timeseries[chartname].update_ts();
+}
+
+
+function update_mselection () {
+
+	$('.selectie_mheader').removeClass('active');
 
 	for (i=0; i<selected_charts.length;i++) {		
 		chartname=selected_charts[i];
-		console.log(chartname);
-		$('#header_'+chartname).addClass('active');
+		console.log('update_mselection:',chartname);
+		$('#mheader_'+chartname).addClass('active');
 		charts[chartname].update_choropleth();
-		timeseries[chartname].update_ts();
+		//timeseries[chartname].update_ts();
 		}
 }
 
 
 function set_selection (evt) {
+
+	selected_chart=evt.target.getAttribute('data-selectie')	
+	console.log ('set_selection:', selected_chart);
+	update_selection();	
+}
+
+function set_mselection (evt) {
 
 	var extrachart=evt.target.getAttribute('data-selectie')
 	console.log ('set_selection', extrachart);
@@ -337,8 +355,8 @@ function set_selection (evt) {
 	} else {
 		selected_charts.splice(i, 1);
 	}	
-	console.log ('set_selection:', selected_charts);
-	update_selection();	
+	console.log ('set_mselection:', selected_charts);
+	update_mselection();	
 }
 
 
@@ -352,7 +370,7 @@ function init_svg(){
 
 
 	$('.selectie_header').on('click',set_selection);
-	
+	$('.selectie_mheader').on('click',set_mselection);
 
 	init_colormap_sidebar_controls();
 	//$('.outline').on('click',click_regio);
@@ -410,6 +428,7 @@ function init_svg(){
 
 	update_colormap_sidebar();	
 	update_selection ();
+	update_mselection ();
 }
 
 
