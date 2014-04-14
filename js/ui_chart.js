@@ -1,7 +1,6 @@
 
 //depends on colormap.js for colormap
 
-var prev_chartcolors={};   //internal backbuffer.
 var chart_xpos=100;  // label position
 var chart_ypos=50;
 var chart_width=0;
@@ -22,7 +21,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
  	this.gradmin=0;
  	this.gradsteps=40;
  	this.gradmax='max';
-
+ 	this.prev_chartcolors={};   
 
 	this.click_regio=function (evt) {
 
@@ -96,8 +95,11 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			var dataslice=[];
 		}
 
-		//console.log ('prepare_c_chart:',cmode, dataslice);
-		return dataslice;
+		this.chart_data=dataslice;
+		this.chart_min=chartc_min;
+		this.chart_max=chartc_min;
+
+		//console.log ('prepare_c_chart:',cmode, dataslice);		
 	}
 
 
@@ -122,7 +124,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	if (colorindex>=gradsteps) colorindex=gradsteps-1;			
 	colorindex=parseInt(colorindex);
 
-	console.log('set_shape_color_by_value:', val, colorindex, tgradmin, tdelta);
+//	console.log('set_shape_color_by_value:', val, colorindex, tgradmin, tdelta);
 	color=colormap.colormap_data[colorindex];					
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
@@ -193,8 +195,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		var colormap=this.colormap;
 	// voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-		this.update_chart_data();
 
+		if (chartname=='c') {
+			this.prepare_c_chart();
+		} else {
+			this.update_chart_data();
+		}
 		var gradient_max=colormap.gradmax;
 		if (colormap.gradmax=='max') {
 			gradient_max=this.chart_max;      // datamax is afhankelijk van keuze chart (a/b/c)
@@ -233,22 +239,9 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		records=data.length;	
 		regioidx=1;			// FIXME 
 		dateidx=0;
-		prev_regiocolors=prev_chartcolors[chartname];
 
 
-		if (chartname=='c') {
-			dataslice=this.prepare_c_chart();
-			start_row=0;
-			eind_row=total_regio.length;
-		} else { 
-			dataslice=data;
-			selected_date=this.datesel;
-			start_row=date_index[selected_date].start_row;
-			eind_row=date_index[selected_date].eind_row;	
-		}
-		
-
-		console.log("start:end",start_row, eind_row);
+		prev_regiocolors=this.prev_chartcolors;		
 		new_regiocolors={};
 		for (i=0; i<regio_keys.length; i++) {
 			new_regiocolors[regio_keys[i]]=0;
@@ -262,12 +255,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			var regio=row[regioidx];			
 			val=row[varidx];
 				
-		//	console.log(regio, val);				
+			//console.log(regio, val);				
 			prev_val=prev_regiocolors[regio];   // kleur zetten als 
 			                                    // nieuwe waarde ongelijk vorige waarde
 			new_regiocolors[regio]=val; 
 			if ((forced_update) || (val!=prev_val)) {
-				//console.log('regio,p,v',regio,prev_val,val);							
+				console.log('regio,p,v',regio,prev_val,val);							
 				val=colormap.color_transform(val);						
 				this.set_shape_color_by_value (regio,val);
 			}
@@ -279,12 +272,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 				//console.log("Prev_regio",regiokey,prev_val,val);
 				//if ((typeof(val)=='undefined') || (val==0)) {
 				if ((typeof(val)=='undefined') || ((val==0) && (prev_val!=0))) {
-					console.log("Prev_regio:",regiokey,prev_val,val);
+					//console.log("Prev_regio:",regiokey,prev_val,val);
 					//console.log('undefined/0, dus wissen:',regiokey, val,prev_val)
 					this.set_shape_color_by_value (regiokey, 0);
 				}
 			}			
-		prev_chartcolors[chartname]=new_regiocolors;
+		this.prev_chartcolors=new_regiocolors;
 
 		
 		if (chartname=='c') { 
@@ -423,6 +416,6 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	for (j=regio_keys.length; j--;) {		
 		prev_regiocolors[regio_keys[chartname]]=0;
 	}
-	prev_chartcolors[chartname]=prev_regiocolors;	
+	this.prev_chartcolors=prev_regiocolors;	
 }  // function  Chart()
 

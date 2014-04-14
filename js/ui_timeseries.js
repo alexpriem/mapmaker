@@ -38,8 +38,7 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 	  	}
 
 		
-		//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();	
-		console.log(this.datesel);
+		//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();			
 
 		var chart=charts[chartname];
 	  	chart.datesel=mind;  	
@@ -228,7 +227,7 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 			for (i=0; i<regioreeks.length; i++) xdata.push(regioreeks[i][0]);  
 			for (i=0; i<regioreeks.length; i++) ydata.push(regioreeks[i][1]);  
 
-				console.log(ydata);
+//				console.log(ydata);
 
 			console.log('daydata:',regioreeks[1]);
 			for (i=1; i<regioreeks.length; i++) {    		

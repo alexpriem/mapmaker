@@ -16,11 +16,12 @@ var click_transform=function click_transform (evt) {
 	$(this).addClass('active_selectie');
 
 	console.log('new transform:',new_transform);
+
+	
 	for (var i=0; i<selected_charts.length; i++){
 		var chart=charts[selected_charts[i]];
 		var colormap=chart.colormap;
-		colormap.transform=new_transform;
-		//chart.colormap_data=colormap_functions[new_colormapname](colormap.gradsteps);		
+		colormap.transform=new_transform;		
 		colormap.calculate_colormap();
 		chart.forced_update=true;
 		chart.update_choropleth();
@@ -53,10 +54,9 @@ var click_colormap=function click_colormap (evt) {
 
 function update_colormap_sidebar()  {
 	console.log("update_colormap_sidebar");
-	if (selected_charts.length==1) {
-		charts[selected_charts[0]].colormap.update_sidebar_transformname();
-		charts[selected_charts[0]].colormap.update_sidebar_colormapname();
-	} // iets anders doen voor lengte>1. (?)
+	
+	charts[selected_chart].colormap.update_sidebar_transformname();
+	charts[selected_chart].colormap.update_sidebar_colormapname();	
 }
 
 
@@ -311,7 +311,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		var barlength=chart_height/3;
 		var barstep=(barlength/this.gradsteps);
 		var chart = d3.select("#chart_"+chartname);
-		console.log(barlength, barstep);
+		//console.log(barlength, barstep);
 		var svg=document.getElementById('chartbox1').children[0];
 		w=svg.getAttributeNS(null,'width');		
 		var imgwidth=parseInt(w.slice(0,w.length-2));

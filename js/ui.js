@@ -343,6 +343,7 @@ function set_selection (evt) {
 	selected_chart=evt.target.getAttribute('data-selectie')	
 	console.log ('set_selection:', selected_chart);
 	update_selection();	
+	update_colormap_sidebar();
 }
 
 function set_mselection (evt) {
