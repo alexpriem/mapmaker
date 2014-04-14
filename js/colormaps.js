@@ -228,7 +228,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 			colormap.gradmin=$('#edit_gradmin_'+chartname).val();
 			console.log('update_gradient:',chart.gradmin, chart.gradmax, chart.gradsteps);
 			colormap.calculate_colormap();
-			chart.update_choropleth();	
+			chart.update();	
 		}
 	}
 
@@ -360,11 +360,11 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 
 	  console.log('Colorscale, transform:', this.transform);
 	  //console.log('Colorscale, datadomain',this.datamin, this.datamax);
-	  console.log('Colorscale, domain',this.tgradmin, this.tgradmax);
+	  console.log('Colorscale, domain',this.gradient_max, this.gradient_min);
 	  tgradmin=1;
-	  colorScale.domain([this.tgradmax, this.tgradmin])
+	  colorScale.domain([this.gradient_max, this.gradient_min])
 	  			.range([0,barlength])
-	  			.ticks(1);
+	  			.ticks(10);
 
 
 

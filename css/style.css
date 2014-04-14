@@ -248,7 +248,7 @@ display:inline;
 }
 
 
-.selectie_header {
+.selectie_header, .selectie_mheader {
 height:20px;
 }
 .active {

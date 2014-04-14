@@ -164,7 +164,7 @@ function prep_data () {
 
 
 
-function update_selectie () {
+function update_key_selectie () {
 	console.log ('selectie=',$(this).val());
 	selected_keylabel=$(this).val()
 	selected_keyid=key2id[selected_keylabel];
@@ -318,7 +318,11 @@ function update_selection () {
 	$('.selectie_header').removeClass('active');
 
 	for (i=0; i<selected_charts.length;i++) {		
-		$('#header_'+selected_charts[i]).addClass('active');
+		chartname=selected_charts[i];
+		console.log(chartname);
+		$('#header_'+chartname).addClass('active');
+		charts[chartname].update_choropleth();
+		timeseries[chartname].update_ts();
 		}
 }
 
@@ -327,7 +331,6 @@ function set_selection (evt) {
 
 	var extrachart=evt.target.getAttribute('data-selectie')
 	console.log ('set_selection', extrachart);
-// TODO: handle dragging -> multiple selection
 	var i=	selected_charts.indexOf(extrachart)
 	if (i<0) {
 		selected_charts.push(extrachart);
@@ -335,7 +338,7 @@ function set_selection (evt) {
 		selected_charts.splice(i, 1);
 	}	
 	console.log ('set_selection:', selected_charts);
-	update_selection();
+	update_selection();	
 }
 
 
@@ -349,7 +352,7 @@ function init_svg(){
 
 
 	$('.selectie_header').on('click',set_selection);
- 	update_selection ();
+	
 
 	init_colormap_sidebar_controls();
 	//$('.outline').on('click',click_regio);
@@ -385,7 +388,7 @@ function init_svg(){
 // selectie init
     if (('key' in var_types) && (country_labels.length>0))  {    	
 		$('#keyentry').typeahead({source:country_labels,  valueKey: "Country"});
-		$('#keyentry').on('change',update_selectie);
+		$('#keyentry').on('change',update_key_selectie);
 	} else {
 		$('#keyentry').css('display','none');
 		$('#keylabel').css('display','none');
@@ -406,6 +409,7 @@ function init_svg(){
 	}	
 
 	update_colormap_sidebar();	
+	update_selection ();
 }
 
 

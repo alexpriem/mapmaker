@@ -18,7 +18,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	this.regiosel=default_regiosel;
 	this.varsel=default_varsel;  
  	this.colormapname='hot2';
- 	this.transform='log10';
+ 	this.transform='linear'; //'log10';
  	this.gradmin=0;
  	this.gradsteps=40;
  	this.gradmax='max';
@@ -122,11 +122,11 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	if (colorindex>=gradsteps) colorindex=gradsteps-1;			
 	colorindex=parseInt(colorindex);
 
-		//console.log(minval, maxval, colorindex);
+	//	console.log('set_shape_color_by_value:', val, colorindex);
 	color=colormap.colormap_data[colorindex];					
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
-	//console.log('set_shape_color_by_value:',regio,colorstring)
+		//console.log('set_shape_color_by_value:',regio,colorstring)
 	el_ids=shape_ids[regio];				
 	if (typeof(el_ids)!="undefined") {
 		for (i=0; i<el_ids.length; i++) {
@@ -138,6 +138,40 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 	} 													
 }
 
+
+
+	this.update_chart_data= function () {
+
+		console.log('update_chart_data:',this.datesel);
+
+		selected_date=this.datesel;
+		var chart_data=[];
+		var start_row=date_index[selected_date].start_row;
+		var eind_row=date_index[selected_date].eind_row;
+		var row=data[start_row];
+		var chart_min=row[varidx];  // chart minimum/maximum init.
+		var chart_max=row[varidx];				
+		
+		for (rownr=start_row; rownr<eind_row; rownr++){				
+			row=data[rownr];				
+			chart_data.push(row)
+			if ((row[0]-selected_date)!=0) {
+				if (!((chartname=='c') && (cmode!='totsel')))  {
+					console.log("error-update choropleth", row[0],selected_date, start_row, eind_row);
+				}
+			}
+			val=row[varidx];			
+			if (val<chart_min) { 
+				chart_min=val;
+			}
+			if (val>chart_max) {
+				chart_max=val;
+			}			
+		} /* for records */
+		this.chart_data=chart_data;
+		this.chart_min=chart_min;
+		this.chart_max=chart_max;
+	}
 
 
 
@@ -158,29 +192,42 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		var colormap=this.colormap;
 	// voor entry: datesel bevat  huidige datumkeuze uit tab.
 
-		
-		var tgradmax=colormap.tgradmax;
+		this.update_chart_data();
+
+		var gradient_max=colormap.gradmax;
 		if (colormap.gradmax=='max') {
-			tgradmax=datamax;      // datamax is afhankelijk van keuze chart (a/b/c)
-		} else {
-			tgradmax=colormap.gradmax;
+			gradient_max=this.chart_max;      // datamax is afhankelijk van keuze chart (a/b/c)
+		} 
+		if (colormap.gradmax=='dmax') {
+			gradient_max=datamax;      // over hele dataset
 		}
-		var tgradmin=colormap.tgradmin;
+		if (colormap.gradmax=='tmax') {
+			gradient_max=timeseries[chartname].chart_max;      // over geselecteerde tijdreeks.
+		}
+
+		var gradient_min=colormap.gradmin;
 		if (colormap.gradmin=='min') {
-			tgradmin=datamin;      // datamin is afhankelijk van keuze chart
-		} else {
-			tgradmin=colormap.gradmin;
+			gradient_min=this.chart_min;
+		} 		
+		if (colormap.gradmax=='dmax') {
+			gradient_max=datamax;      // over hele dataset
 		}
+		if (colormap.gradmax=='tmax') {
+			gradient_max=timeseries[chartname].chart_max;      // over geselecteerde tijdreeks.
+		}
+
+
+		colormap.gradient_min=gradient_min;
+		colormap.gradient_max=gradient_max;
+		
+		colormap.tgradmin=colormap.color_transform(gradient_min);
+		colormap.tgradmax=colormap.color_transform(gradient_max);		
+		colormap.tdelta=colormap.tgradmax-colormap.tgradmin;
+
 		colormap.draw_colormap(chartname); 
 
-		tgradmin=colormap.color_transform(tgradmin);
-		tgradmax=colormap.color_transform(tgradmax);
-		var tdelta=tgradmax-tgradmin;
-		colormap.tgradmin=tgradmin;
-		colormap.tgradmax=tgradmax;
-		colormap.tdelta=tdelta;
 
-		console.log("update_choropleth:",tgradmin, tgradmax, tdelta)
+		console.log("update_choropleth:",colormap.tgradmin, colormap.tgradmax,colormap.tdelta);
 		console.log("day/regio/var",this.datesel,this.regiosel,varsel, varidx);
 		records=data.length;	
 		regioidx=1;			// FIXME 
@@ -206,17 +253,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			new_regiocolors[regio_keys[i]]=0;
 		}
 		
-		row=dataslice[start_row];
-		chart_min=row[varidx];  // chart minimum/maximum init.
-		chart_max=row[varidx];
-		for (rownr=start_row; rownr<eind_row; rownr++){	
-			row=dataslice[rownr];	
-
-			if ((row[0]-selected_date)!=0) {
-				if (!((chartname=='c') && (cmode!='totsel')))  {
-					console.log("error-update choropleth", row[0],selected_date, start_row, eind_row);
-				}
-			}
+		for (rownr=0; rownr<this.chart_data.length; rownr++){	
+			row=this.chart_data[rownr];				
 			var regio=row[regioidx];			
 			val=row[varidx];
 			
@@ -227,14 +265,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			if ((val!=prev_val)) {			
 				//console.log('regio,p,v',regio,prev_val,val);
 				new_regiocolors[regio]=val;			
-				if (val<chart_min) { 
-					chart_min=val;
-				}
-				if (val>chart_max) {
-					chart_max=val;
-				}
-				val=colormap.color_transform(val);		
-				
+				val=colormap.color_transform(val);						
 				this.set_shape_color_by_value (regio,val);
 			}
 		} /* for records */
