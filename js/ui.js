@@ -317,8 +317,7 @@ function update_selection () {
 
 	$('.selectie_header').removeClass('active');
 
-	for (i=0; i<selected_charts.length;i++) {
-		console.log('set selectie:',selected_charts[i]);
+	for (i=0; i<selected_charts.length;i++) {		
 		$('#header_'+selected_charts[i]).addClass('active');
 		}
 }
@@ -326,68 +325,22 @@ function update_selection () {
 
 function set_selection (evt) {
 
-	console.log ('set_selection');
-// TODO: handle dragging -> multiple selections
-	var a=evt.target.getAttribute('data-selectie')
-	console.log(a);
-	selected_charts=[evt.target.getAttribute('data-selectie')];
+	var extrachart=evt.target.getAttribute('data-selectie')
+	console.log ('set_selection', extrachart);
+// TODO: handle dragging -> multiple selection
+	var i=	selected_charts.indexOf(extrachart)
+	if (i<0) {
+		selected_charts.push(extrachart);
+	} else {
+		selected_charts.splice(i, 1);
+	}	
+	console.log ('set_selection:', selected_charts);
 	update_selection();
 }
 
 
 
 
-function dragstarted(d) {
-//	console.log("dragstarted");
-//	console.log(d3.event.sourceEvent.originalTarget.id);
-	orig_id=d3.event.sourceEvent.originalTarget.id;
-	var td = document.getElementById('header_a');
-	d3.event.sourceEvent.stopPropagation();
-}
-
-function dragged(d) {
-	//console.log("dragged",d3.event.x, d3.event.y,d3.event); 	
-//	console.log(d3.event.sourceEvent.originalTarget.id);
-	new_id=d3.event.sourceEvent.originalTarget.id;
-	var classList=d3.event.sourceEvent.originalTarget.classList;
-	if (classList.contains('selectie_header')) {	
-		if (new_id!=orig_id) $('#'+new_id).addClass('active');
-	}
-
- // d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-}
-
-function dragended(d) {
-//	console.clear();
-	console.log("dragended");
-	var sel=document.querySelectorAll(".selectie_header");
-	console.log(sel);
-	selected_charts=[];
-	for (i=0; i<sel.length; i++) {
-		if (sel[i].classList.contains("active")) {
-			var chartname=sel[i].id.split('_')[1];
-			selected_charts.push(chartname);
-			}
-	}
-	console.log(selected_charts);
-	
-}
-
-
-
-function init_dragdrop (){
-
-
-
-var drag = d3.behavior.drag()
-//   .origin(function(d) { return d; })
-    .on("dragstart", dragstarted)
-    .on("drag", dragged)
-    .on("dragend", dragended);
-
- var hd=d3.selectAll(".selectie_header").call(drag);
-console.log(hd);
-}
 
 
 
@@ -452,8 +405,7 @@ function init_svg(){
 		timeseries['c'].update_ts ();		
 	}	
 
-	update_colormap_sidebar();
-	init_dragdrop();
+	update_colormap_sidebar();	
 }
 
 
