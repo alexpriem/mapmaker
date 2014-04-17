@@ -54,8 +54,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			chartc_min=null;	/* global for the moment */
 			chartc_max=null;
 
-			var datesel_a=chart['a'].datesel;
-			var datesel_b=chart['b'].datesel;
+			var datesel_a=charts['a'].datesel;
+			var datesel_b=charts['b'].datesel;
 			start_row_a=date_index[datesel_a].start_row;
 			start_row_b=date_index[datesel_b].start_row;
 			eind_row_a=date_index[datesel_a].eind_row;

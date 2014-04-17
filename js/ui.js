@@ -186,7 +186,13 @@ function change_cmode () {
 	$('.tab').removeClass('active_selectie');
 	$(this).addClass('active_selectie');
 	cmode=$(this).attr('data-tab');
-
+	console.log('change_cmode:',cmode);
+	if ((cmode=='reg') || (cmode=='diff')) {		
+		charts['c'].colormap.colormapname='coolwarm';
+		charts['c'].colormap.gradmax='max';
+		charts['c'].colormap.gradmin='min';
+	}
+	console.log(charts['c']);
 	charts['c'].update_choropleth();	// FIXME: 'c' uit context halen
 }
 
