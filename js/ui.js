@@ -350,9 +350,28 @@ function update_mselection () {
 function set_selection (evt) {
 
 	selected_chart=evt.target.getAttribute('data-selectie')	
-	console.log ('set_selection:', selected_chart);
-	update_selection();	
+	console.log ('set_selection:', selected_chart);	
+	update_selection();		
 	update_colormap_sidebar();
+
+	from_chart=charts[selected_chart];
+	if (selected_charts.length>1) {
+		for (var i=0; i<selected_charts.length; i++){
+			var chart=charts[selected_charts[i]];	
+			var colormap=chart.colormap;
+			colormap.copy_settings (from_chart.colormap);		
+			colormap.calculate_colormap();
+			chart.forced_update=true;
+			chart.update_choropleth();
+		}
+	} else {
+			var chart=charts[selected_chart];	
+			var colormap=chart.colormap;
+			colormap.copy_settings (from_chart.colormap);		
+			colormap.calculate_colormap();
+			chart.forced_update=true;
+			chart.update_choropleth();
+	}
 }
 
 function set_mselection (evt) {
