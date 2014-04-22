@@ -181,12 +181,18 @@ function update_key_selectie () {
 
 
 
+function update_cmode () {
+	console.log('update_cmode:',cmode);
+	$('.tab').removeClass('active_selectie');
+	$('#tab_'+cmode).addClass('active_selectie');
+}
+
 
 function change_cmode () {
-	$('.tab').removeClass('active_selectie');
-	$(this).addClass('active_selectie');
+
 	cmode=$(this).attr('data-tab');
 	console.log('change_cmode:',cmode);
+	update_cmode();	
 	if ((cmode=='reg') || (cmode=='diff')) {		
 		charts['c'].colormap.colormapname='coolwarm';
 		charts['c'].colormap.gradmax='max';
@@ -220,23 +226,31 @@ function setup_vars () {
 }
 
 function movie_begin (evt) {
-	var current_chart=evt.target.getAttribute('data-ts');
-	datesel[current_chart]=dates[0];	
-	console.log ("date set to:",datesel[current_chart]);
+	var current_chart=evt.target.getAttribute('data-ts');	
 	var chart=charts[current_chart];
-	var timeserie=timeseries[current_chart];
+	var nextdate=dates[0];	
+	console.log ("movie_begin, date set to:",datesel[current_chart]);
+	
+	chart.datesel=nextdate;
+	console.log ("movie_next, date set to:",current_chart, nextdate);
+	var timeserie=timeseries[current_chart];	
+	timeserie.datesel=nextdate;
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
+	return false;
 	return false;
 }
 
 function movie_last (evt) {
 	var current_chart=evt.target.getAttribute('data-ts');
-	datesel[current_chart]=dates[dates.length-1];
-	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel[current_chart]);
 	var chart=charts[current_chart];
-	var timeserie=timeseries[current_chart];
+	var nextdate=dates[dates.length-2];	
+	//datesel_asdate=convert_date(datesel);	
+		
+	chart.datesel=nextdate;
+	console.log ("movie_next, date set to:",current_chart, nextdate);
+	var timeserie=timeseries[current_chart];	
+	timeserie.datesel=nextdate;
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
@@ -244,28 +258,36 @@ function movie_last (evt) {
 
 function movie_next (evt) {
 	var current_chart=evt.target.getAttribute('data-ts');
-	var nextdate=dates.indexOf(datesel)+1;
-	if (nextdate>=dates.length)
-		nextdate=dates.length;
-	datesel[current_chart]=dates[nextdate];
-	//datesel_asdate=convert_date(datesel);
-	console.log ("date set to:",datesel[current_chart]);
 	var chart=charts[current_chart];
+	var datesel=chart.datesel;
+	var nextdateindex=dates.indexOf(datesel)+1;	
+	if (nextdateindex>=dates.length)
+		nextdateindex=dates.length;
+
+	var nextdate=dates[nextdateindex];	
+	chart.datesel=nextdate;
+	console.log ("movie_next, date set to:",current_chart, nextdate);
 	var timeserie=timeseries[current_chart];	
+	timeserie.datesel=nextdate;
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
+
 	return false;
 }
 
 function movie_prev (evt) {
-	var current_chart=evt.target.getAttribute('data-ts');	
-	var nextdate=dates.indexOf(datesel)-1;
-	if (nextdate<0)
-		nextdate=0;	
-	datesel[current_chart]=dates[nextdate];
-	console.log ("date set to:",datesel[current_chart]);
+	var current_chart=evt.target.getAttribute('data-ts');
 	var chart=charts[current_chart];
+	var datesel=chart.datesel;
+	var nextdateindex=dates.indexOf(datesel)-1;
+	if (nextdateindex<0)
+		nextdateindex=0;			
+	var nextdate=dates[nextdateindex];	
+
+	chart.datesel=nextdate;
+	console.log ("movie_next, date set to:",current_chart, nextdate);
 	var timeserie=timeseries[current_chart];	
+	timeserie.datesel=nextdate;
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	return false;
@@ -276,25 +298,26 @@ function movie_start (evt) {
 	dateindex=dates.indexOf(datesel);
 
 	stop_player=false;
-	setTimeout (movie_nextframe,200);
+	setTimeout (movie_nextframe(),200);
 	return false;
 }
 
 function movie_nextframe(evt) {
 
 	var current_chart=evt.target.getAttribute('data-ts');
+	var chart=charts[current_chart];
 	console.log('nextframe:',dateindex,stop_player);
 	if (stop_player) return;
-	dateindex+=1;
-	if (dateindex>=dates.length){
+	chart.dateindex+=1;
+	if (chart.dateindex>=dates.length){
 		console.log('ended');
 		stop_player=true;
 		return;
 	}
-	datesel[current_chart]=dates[dateindex];
-
-	var chart=charts[current_chart];
-	var timeserie=timeseries[current_chart];	
+	chart.datesel=dates[dateindex];
+	
+	var timeserie=timeseries[current_chart];
+	timeserie.datesel=dates[dateindex];
 	chart.update_choropleth();
 	timeserie.update_ts_sel();
 	setTimeout (movie_nextframe,10);		
@@ -310,12 +333,12 @@ function movie_pause (evt) {
 	
 
 function init_movie_ui () {
-	$('#m_begin').on('click',movie_begin);
-	$('#m_prev').on('click',movie_prev);
-	$('#m_start').on('click',movie_start);
-	$('#m_pause').on('click',movie_pause);
-	$('#m_next').on('click',movie_next);
-	$('#m_last').on('click',movie_last);
+	$('.m_begin').on('click',movie_begin);
+	$('.m_prev').on('click',movie_prev);
+	$('.m_start').on('click',movie_start);
+	$('.m_pause').on('click',movie_pause);
+	$('.m_next').on('click',movie_next);
+	$('.m_last').on('click',movie_last);
 }
 
 
@@ -427,8 +450,7 @@ function init_svg(){
 	timeseries['b']=new TimeSeries('b', data[0][0], data[0][1], 0);
 	timeseries['c']=new TimeSeries('c', data[0][0], data[0][1], 0);	
 
-// tab init
-	cmode='tot';
+// tab init	
     $('.tab').on('click',change_cmode);
     $('#tab_a').addClass('active_selectie');
     $('.tab').on('mouseenter ',enter_selectie);
@@ -460,6 +482,7 @@ function init_svg(){
 	update_colormap_sidebar();	
 	update_selection ();
 	update_mselection ();
+	update_cmode();
 }
 
 
