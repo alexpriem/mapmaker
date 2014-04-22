@@ -10,18 +10,17 @@ var chart_height=0;
 
 // should include function to other charts (a/b/c)
 
-function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
+function Chart (chartname, default_datesel, default_regiosel, default_varsel, 
+							default_colormapname, default_transform, 
+							default_gradmin, default_gradsteps, default_gradmax) {
 
 	this.chartname=chartname;	
 	this.datesel=default_datesel;
 	this.regiosel=default_regiosel;
-	this.varsel=default_varsel;  
- 	this.colormapname='hot2';
- 	this.transform='linear'; //'log10';
- 	this.gradmin=0;
- 	this.gradsteps=40;
- 	this.gradmax='max';
+	this.varsel=default_varsel;   	
  	this.prev_chartcolors={};   
+
+
 
 	this.click_regio=function (evt) {
 
@@ -260,7 +259,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 			                                    // nieuwe waarde ongelijk vorige waarde
 			new_regiocolors[regio]=val; 
 			if ((forced_update) || (val!=prev_val)) {
-				console.log('regio,p,v',regio,prev_val,val);							
+				//console.log('regio,p,v',regio,prev_val,val);							
 				val=colormap.color_transform(val);						
 				this.set_shape_color_by_value (regio,val);
 			}
@@ -338,7 +337,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		chart_height=h.slice(0,h.length-2);
 	}
 
-	
+
 	if (chartname=='b') {
 		var chartdiv=document.getElementById('chartbox1');
 		var chart1=chartdiv.children[0];
@@ -356,8 +355,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 					var fignode=el;
 					break;
 				}
-	    	el = el.nextElementSibling;
-	  	}
+    		el = el.nextElementSibling;
+  		}
 
 		fignode.setAttribute('id','figure_2');
 		axisnode=fignode.firstElementChild;
@@ -374,10 +373,10 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 
 
 		$('#axes_2').on('click',this.click_regio);
-	//console.log(fignode.childNodes);
+//console.log(fignode.childNodes);
 	}
 
-	
+
 	if (chartname=='c') {
 		var chartdiv=document.getElementById('chartbox1');
 		var chart1=chartdiv.children[0];
@@ -411,7 +410,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel) {
 		$('#axes_3').on('click',this.click_regio);
 	}
 	
-	this.colormap=new Colormap(chartname, this.colormapname, this.transform, this.gradmin,this.gradsteps,this.gradmax);
+	
+	this.colormap=new Colormap(chartname, default_colormapname, default_transform, default_gradmin, default_gradsteps, default_gradmax);
 	prev_regiocolors={};
 	for (j=regio_keys.length; j--;) {		
 		prev_regiocolors[regio_keys[chartname]]=0;

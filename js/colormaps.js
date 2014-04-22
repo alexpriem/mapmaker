@@ -205,6 +205,38 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	this.transform=transform;
 	this.colormapname=colormapname;
 
+		// kopie 
+	this.gradmax_2=gradmax;
+	this.gradmin_2=gradmin;
+	this.gradsteps_2=gradsteps;
+	this.tgradmin_2=0;
+	this.tgradmax_2=0;
+	this.transform_2=transform;
+	this.colormapname_2=colormapname;
+
+
+
+	this.store_settings=function () {
+		this.gradmax_2=this.gradmax;
+		this.gradmin_2=this.gradmin;
+		this.gradsteps_2=this.gradsteps;
+		this.tgradmin_2=this.tgradmin;
+		this.tgradmax_2=this.tgradmax;
+		this.transform_2=this.transform;
+		this.colormapname_2=this.colormapname;
+	}
+
+	this.restore_settings=function () {
+		this.gradmax=this.gradmax_2;
+		this.gradmin=this.gradmin_2;
+		this.gradsteps=this.gradsteps_2;
+		this.tgradmin=this.tgradmin_2;
+		this.tgradmax=this.tgradmax_2;
+		this.transform=this.transform_2;
+		this.colormapname=this.colormapname_2;
+	}
+
+
 
 	this.calculate_colormap=function () {
 		this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);

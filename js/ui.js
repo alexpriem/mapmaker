@@ -30,7 +30,7 @@ var datamin;
 var datamax;
 
 var current_chart='a';
-var cmode='tot';
+var cmode='diff';
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
     				"July", "August", "September", "October", "November", "December" ];
@@ -334,13 +334,16 @@ function update_mselection () {
 
 	$('.selectie_mheader').removeClass('active');
 
-	for (i=0; i<selected_charts.length;i++) {		
+	console.log('update_mselection:',selected_charts);
+	for (var i=0; i<selected_charts.length;i++) {		
 		chartname=selected_charts[i];
 		console.log('update_mselection:',chartname);
 		$('#mheader_'+chartname).addClass('active');
 		charts[chartname].update_choropleth();
+		console.log('update_mselection2:',chartname);
 		//timeseries[chartname].update_ts();
 		}
+	console.log('update_mselection:',selected_charts);		
 }
 
 
@@ -355,8 +358,8 @@ function set_selection (evt) {
 function set_mselection (evt) {
 
 	var extrachart=evt.target.getAttribute('data-selectie')
-	console.log ('set_selection', extrachart);
-	var i=	selected_charts.indexOf(extrachart)
+	console.log ('set_mselection', extrachart);
+	var i=selected_charts.indexOf(extrachart)
 	if (i<0) {
 		selected_charts.push(extrachart);
 	} else {
@@ -378,7 +381,9 @@ function init_svg(){
 
 	$('.selectie_header').on('click',set_selection);
 	$('.selectie_mheader').on('click',set_mselection);
+	//$('.selectie_mheader').addClass('active');
 
+	console.log ('added classes');
 	init_colormap_sidebar_controls();
 	//$('.outline').on('click',click_regio);
 
@@ -392,16 +397,16 @@ function init_svg(){
     $('#patch_6').remove();
 
 
-	var chart_a=new Chart('a',data[0][0],data[0][1],0);
-	var chart_b=new Chart('b',data[0][0],data[0][1],0);
-	var chart_c=new Chart('c',data[0][0],data[0][1],0);
+	var chart_a=new Chart('a',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
+	var chart_b=new Chart('b',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
+	var chart_c=new Chart('c',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
 	charts['a']=chart_a;
 	charts['b']=chart_b;
 	charts['c']=chart_c;
 
-	timeseries['a']=new TimeSeries('a',data[0][0],data[0][1],0);
-	timeseries['b']=new TimeSeries('b',data[0][0],data[0][1],0);
-	timeseries['c']=new TimeSeries('c',data[0][0],data[0][1],0);	
+	timeseries['a']=new TimeSeries('a', data[0][0], data[0][1], 0);
+	timeseries['b']=new TimeSeries('b', data[0][0], data[0][1], 0);
+	timeseries['c']=new TimeSeries('c', data[0][0], data[0][1], 0);	
 
 // tab init
 	cmode='tot';
