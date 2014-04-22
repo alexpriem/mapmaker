@@ -680,7 +680,7 @@ parser.add_argument('-label_ypos', dest='label_ypos',  help='ypos label', requir
 parser.add_argument('-title', dest='title',  help='title', required=False, default='')
 parser.add_argument('-kf','--keyfile', dest='keyfile',  help='keyfile', required=False)
 parser.add_argument('-rf','--regiofile', dest='regiofile',  help='regiofile', required=False)
-
+parser.add_argument('-at','--agg_time', dest='agg_time',  help='aggegrate by time-axis', required=False, default=False,  action='store_true')
 
 args=vars(parser.parse_args())
 m=mapmaker(args)
