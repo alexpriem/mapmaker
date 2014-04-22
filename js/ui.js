@@ -159,6 +159,7 @@ function prep_data () {
 	console.log ("prep:",mindate,maxdate); 
 
 	regiosel=data[0][regiocol]; // init: begin met regio van eerste record.
+
 }
 
 
@@ -412,8 +413,26 @@ function set_mselection (evt) {
 }
 
 
+function update_regio_selectie () {
+
+	regio=$('#regioentry').val();
+	console.log('update_regio_selectie:',regio);
+	regiokey=regio_key2label[regio.toLowerCase()];
+	var timeserie=timeseries[selected_chart];
+	timeserie.regiosel=regiokey;
+	timeserie.update_ts();	
+}
 
 
+function update_date_selectie () {
+	// FIXME: stub code
+	var newdate=$('#dateentry').val();
+	console.log('update_regio_selectie:',newdate);
+	newdate=new Date(newdate);
+	var chart=charts[selected_chart];
+	chart.datesel=newdate;
+	chart.update_choropleth();	
+}
 
 
 
@@ -465,6 +484,9 @@ function init_svg(){
 		$('#keylabel').css('display','none');
 	}
 
+
+	$('#regioentry').typeahead({source:regio_labels,  valueKey: "Regio"});
+	$('#regioentry').on('change',update_regio_selectie);
 	setup_vars();		
 	init_movie_ui();
 

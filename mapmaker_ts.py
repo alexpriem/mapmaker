@@ -34,6 +34,10 @@ class mapmaker:
         return keylabel
 
     def write_keyfile(self,filename,keydict,prefix):
+            valdict={}
+            for k,v in keydict.items():
+                valdict[v.lower()]=k
+        
             f=open(filename,'w')
             keytxt=json.dumps(keydict.keys());
             f.write("var %s_keys=%s;\n\n" %(prefix,keytxt));
@@ -41,8 +45,9 @@ class mapmaker:
             f.write("var %s_labels=%s;\n\n" %(prefix,valuestxt));
             dicttxt=json.dumps(keydict);
             f.write("var %s_label2key=%s;\n\n" %(prefix,dicttxt));
+            dicttxt=json.dumps(valdict);
+            f.write("var %s_key2label=%s;\n\n" %(prefix,dicttxt));
             f.close()
-    
 
     def draw_areas(self,p,graph,color,regio_id):
 
