@@ -7,6 +7,17 @@ var chart_width=0;
 var chart_height=0;
 
 
+function dateformat (d, format) {
+	if (format=='YMD') {
+			var s=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
+		}
+	if (format=='YM') {
+		var s=MonthName[d.getMonth()]+' '+d.getFullYear();
+	}
+
+	return s;
+}
+
 
 // should include function to other charts (a/b/c)
 
@@ -298,9 +309,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			if (cmode=='reg') {
 				datelabel='Regressie';
 			}
-		} else {
-			var d=selected_date;	
-			datelabel=d.getDate()+' '+MonthName[d.getMonth()]+' '+d.getFullYear();
+		} else {			
+			var datelabel=dateformat(selected_date, datestyle);
 		}
 
 

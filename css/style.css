@@ -254,3 +254,36 @@ height:20px;
 .active {
 background-color: SteelBlue;
 }
+
+
+
+#tab_chart{
+text-align: left;
+font-family:sans-serif;
+font-weight:bold;
+font-size: 13px;  
+background:#d2ecf7;
+}
+
+
+#tab_data{
+text-align: right;  
+font-family:sans-serif;
+font-weight:bold;
+font-size: 13px;  
+background:#d2ecf7;
+}
+
+
+#tabledata * th,td {
+font-family:sans-serif;
+text-align:right;
+}
+
+#even {
+background: #77777;
+}
+
+#odd {
+background: #999999;
+}

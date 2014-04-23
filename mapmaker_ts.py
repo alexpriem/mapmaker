@@ -34,14 +34,18 @@ class mapmaker:
         return keylabel
 
     def write_keyfile(self,filename,keydict,prefix):
+            intdict={}
+            for k,v in keydict.items():
+                intdict[int(k)]=v
+            keydict=intdict
             valdict={}
             for k,v in keydict.items():
                 valdict[v.lower()]=k
         
             f=open(filename,'w')
-            keytxt=json.dumps(keydict.keys());
+            keytxt=json.dumps(sorted(keydict.keys()));
             f.write("var %s_keys=%s;\n\n" %(prefix,keytxt));
-            valuestxt=json.dumps(keydict.values());
+            valuestxt=json.dumps(sorted(keydict.values()));
             f.write("var %s_labels=%s;\n\n" %(prefix,valuestxt));
             dicttxt=json.dumps(keydict);
             f.write("var %s_label2key=%s;\n\n" %(prefix,dicttxt));
