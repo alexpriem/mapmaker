@@ -280,10 +280,10 @@ font-family:sans-serif;
 text-align:right;
 }
 
-#even {
-background: #77777;
+.even {
+background-color: #d2ecf7;
 }
 
-#odd {
-background: #999999;
+.odd {
+background-color: #9cd7ef;
 }

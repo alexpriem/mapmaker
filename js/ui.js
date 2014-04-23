@@ -485,10 +485,12 @@ function show_tabledata () {
 
 
 		if ((val_a!='') || (val_b!='') || (val_c!='')) {
-			s+='<tr class="'+oddeven+'"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';
+			s+='<tr class="'+oddeven+'"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';		
+			if (oddeven=='even') 
+				{oddeven='odd';}
+			else
+				{oddeven='even';}
 		}
-		if (oddeven='even') {oddeven='odd';}
-		if (oddeven='odd') {oddeven='even';}
 	}
 	$('#tabledata').html('<table>'+s+'</table>');
 	//	console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
