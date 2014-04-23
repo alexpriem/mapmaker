@@ -15,6 +15,7 @@ var selected_chart=chartnames[0];    // onderste regel, enkele sel.
 var color=[];
 var charts={};
 var timeseries={};
+var datatable;
 
 
 
@@ -32,6 +33,9 @@ var datamax;
 var current_chart='a';
 var cmode='diff';
 var datestyle='YMD';
+
+var display_datatable=true;  // 
+
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
     				"July", "August", "September", "October", "November", "December" ];
@@ -437,66 +441,39 @@ function update_date_selectie () {
 }
 
 
+
+function update_datatable_chart_visibility () {
+
+if (!display_datatable) {
+ 	$('#chartbox1').show();
+ 	$('#chartbox2').show();
+ 	$('#chartbox3').show();
+ 	$('#tabledata').hide();
+} else {
+	datatable.update_datatable();
+ 	$('#chartbox1').hide();
+ 	$('#chartbox2').hide();
+ 	$('#chartbox3').hide();
+ 	$('#tabledata').show();	
+ }
+
+}
+
 function show_charts () {
 
- console.log('show_chart:');
- $('#chartbox1').show();
- $('#chartbox2').show();
- $('#chartbox3').show();
- $('#tabledata').hide();
+ console.log('show_chart:',show_datatable);
+ display_datatable=false; 
+ update_datatable_chart_visibility();
 }
 
 
-function show_tabledata () {
+function show_datatable () {
 
- console.log('show_table');
- $('#chartbox1').hide();
- $('#chartbox2').hide();
- $('#chartbox3').hide();
-
-
-	var data_a=charts['a'].chart_data;
-	var data_b=charts['b'].chart_data;
-	var data_c=charts['c'].chart_data;
-
-	var row_a=0;
-	var row_b=0;
-	var row_c=0;
-	var s='<tr> <th> Label</th> <th>'+dateformat(charts['a'].datesel, datestyle)+'</th><th>'+dateformat(charts['b'].datesel, datestyle)+'</th><th>'+cmode+'</th></tr>';
-	oddeven='odd';
-	for (i=0; i<regio_keys.length; i++){
-		regio=regio_keys[i];
-		val_a='';
-		val_b='';
-		val_c='';		
-		//console.log(regio, data_a[row_a][regioidx], data_b[row_b][regioidx], data_c[row_c][regioidx], ':::',row_a,row_b, row_c);
-		if ((row_a<data_a.length) && (data_a[row_a][regioidx]==regio)) {
-			val_a=data_a[row_a][varidx];		
-			row_a++;
-		}
-		if ((row_b<data_b.length) && (data_b[row_b][regioidx]==regio)) {
-			val_b=data_b[row_b][varidx];		
-			row_b++;
-		}
-		if ((row_c<data_c.length) && (data_c[row_c][regioidx]==regio)) {
-			val_c=data_c[row_c][varidx];		
-			row_c++;
-		}
-
-
-		if ((val_a!='') || (val_b!='') || (val_c!='')) {
-			s+='<tr class="'+oddeven+'"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';		
-			if (oddeven=='even') 
-				{oddeven='odd';}
-			else
-				{oddeven='even';}
-		}
-	}
-	$('#tabledata').html('<table>'+s+'</table>');
-	//	console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
-
- $('#tabledata').show();
+ display_datatable=true;
+ console.log('show_datatable:',show_datatable);
+ update_datatable_chart_visibility();
 }
+
 
 function init_svg(){
 	console.log('init_svg');
@@ -531,6 +508,8 @@ function init_svg(){
 	timeseries['b']=new TimeSeries('b', data[0][0], data[0][1], 0);
 	timeseries['c']=new TimeSeries('c', data[0][0], data[0][1], 0);	
 
+	datatable=new Datatable();
+
 // tab init	
     $('.tab').on('click',change_cmode);
     $('#tab_a').addClass('active_selectie');
@@ -554,11 +533,9 @@ function init_svg(){
 	update_cmode();
 	
 
-	$('#tab_data').on('click',show_tabledata);
+	$('#tab_data').on('click',show_datatable);
 	$('#tab_chart').on('click',show_charts);
-
 	
-	show_charts();
 	if (var_types.indexOf('date')>=0) {		// datum in data? verdergaan met initializatie. 
 		console.log('prep');
 		prep_data();		
@@ -573,6 +550,7 @@ function init_svg(){
 	update_colormap_sidebar();	
 	update_selection ();
 	update_mselection ();
+	update_datatable_chart_visibility();
 }
 
 
