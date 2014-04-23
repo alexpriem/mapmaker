@@ -480,10 +480,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		return val;
 	}
 
-
-	console.log(this.colormapname);
-	console.log(colormap_functions);
-	console.log(colormap_functions[this.colormapname]);
+	
 	this.colormap_data=colormap_functions[this.colormapname](this.gradsteps);
 	this.init_colormap_inputs();
 	this.draw_colormap();	

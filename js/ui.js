@@ -186,20 +186,21 @@ function update_cmode () {
 	console.log('update_cmode:',cmode);
 	$('.tab').removeClass('active_selectie');
 	$('#tab_'+cmode).addClass('active_selectie');
+	if ((cmode=='reg') || (cmode=='diff')) {		
+		console.log('update_cmode::set diff');
+		charts['c'].colormap.colormapname='coolwarm';
+		charts['c'].colormap.gradmax='max';
+		charts['c'].colormap.gradmin='min';
+	}
+	console.log(charts['c']);
 }
-
 
 function change_cmode () {
 
 	cmode=$(this).attr('data-tab');
 	console.log('change_cmode:',cmode);
 	update_cmode();	
-	if ((cmode=='reg') || (cmode=='diff')) {		
-		charts['c'].colormap.colormapname='coolwarm';
-		charts['c'].colormap.gradmax='max';
-		charts['c'].colormap.gradmin='min';
-	}
-	console.log(charts['c']);
+	update_cmode_settings();	
 	charts['c'].update_choropleth();	// FIXME: 'c' uit context halen
 }
 
@@ -458,9 +459,9 @@ function init_svg(){
     $('#patch_6').remove();
 
 
-	var chart_a=new Chart('a',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
-	var chart_b=new Chart('b',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
-	var chart_c=new Chart('c',data[0][0], data[0][1], 0, 'hot2','linear', 0, 40, 'max' );
+	var chart_a=new Chart('a',data[0][0], data[0][1], 0, 'hot2','log10', 0, 40, 'max' );
+	var chart_b=new Chart('b',data[150][0], data[0][1], 0, 'hot2','log10', 0, 40, 'max' );
+	var chart_c=new Chart('c',data[0][0], data[0][1], 0, 'hot2','log10', 'min', 40, 'max' );
 	charts['a']=chart_a;
 	charts['b']=chart_b;
 	charts['c']=chart_c;
@@ -489,6 +490,8 @@ function init_svg(){
 	$('#regioentry').on('change',update_regio_selectie);
 	setup_vars();		
 	init_movie_ui();
+	update_cmode();
+
 
 	if (var_types.indexOf('date')>=0) {		// datum in data? verdergaan met initializatie. 
 		console.log('prep');
@@ -504,7 +507,6 @@ function init_svg(){
 	update_colormap_sidebar();	
 	update_selection ();
 	update_mselection ();
-	update_cmode();
 }
 
 

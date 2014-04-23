@@ -47,7 +47,9 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 	this.prepare_c_chart=function () {
 
+		console.log('prepare_c_chart:');
 		if (cmode=='diff') {
+			console.log('prepare_c_chart:diff');
 			var dataslice=[];
 			// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
 			chartc_min=null;	/* global for the moment */
@@ -61,24 +63,28 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			eind_row_b=date_index[datesel_b].eind_row;
 			rownr_a=start_row_a;
 			rownr_b=start_row_b;
-			while ((rownr_a < eind_row_a) && (rownr_b> eind_row_b)) {
-				if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
-					val=data[rownr_a][varidx];
-					rownr_a++;
-				}
+			console.log('[a1,a2],[b1,b2]', start_row_a,eind_row_a, start_row_b, eind_row_b);
+			while ((rownr_a < eind_row_a) && (rownr_b< eind_row_b)) {
+			//	console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
+				vall=null;
 				if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
-					val=data[rownr_b][varidx];
+					val= data[rownr_a][varidx];
+					row=[0, data[rownr_a][regioidx],val];
+					rownr_a++;
+				} else if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
+					val= data[rownr_b][varidx];
+					row=[0, data[rownr_b][regioidx], -val];
 					rownr_b++;
-				}
-				if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
-					val=data[rownr_a][varidx]-data[rownr_b][varidx];
+				} else if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
+					val= data[rownr_a][varidx]-data[rownr_b][varidx];
+					row=[0, data[rownr_b][regioidx], val];
 					rownr_a++;
 					rownr_b++;
 				}
-			val=data[rownr][varidx];
-			if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
-			if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
-			dataslice.push([data[rownr], val]);		
+			//	console.log(data[rownr_a][regioidx], ':',data[rownr_b][regioidx],'==',row);
+				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
+				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
+				dataslice.push(row);						
 			}
 		}
 		if (cmode=='tot') {
@@ -98,7 +104,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		this.chart_min=chartc_min;
 		this.chart_max=chartc_min;
 
-		//console.log ('prepare_c_chart:',cmode, dataslice);		
+		console.log ('prepare_c_chart:',cmode, dataslice);		
 	}
 
 
