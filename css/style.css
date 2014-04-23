@@ -187,15 +187,15 @@ fill none;
   background:#f4f4f4; /* left column background colour */
 }
 .threecol .col1 {
-  width:73%;      /* width of center column content (column width minus padding on either side) */
-  left:102%;      /* 100% plus left padding of center column */
+  width:75%;      /* width of center column content (column width minus padding on either side) */
+  left:100%;      /* 100% plus left padding of center column */
 }
 .threecol .col2 {
-  width:10%;      /* Width of left column content (column width minus padding on either side) */
-  left:18%;     /* width of (right column) plus (center column left and right padding) plus (left column left padding) */
+  width:8%;      /* Width of left column content (column width minus padding on either side) */
+  left:16%;     /* width of (right column) plus (center column left and right padding) plus (left column left padding) */
 }
 .threecol .col3 {
-  width:16%;      /* Width of right column content (column width minus padding on either side) */
+  width:12%;      /* Width of right column content (column width minus padding on either side) */
   left:95%;     /* Please make note of the brackets here:
           (100% - left column width) plus (center column left and right padding) plus (left column left and right padding) plus (right column left padding) */
 }
