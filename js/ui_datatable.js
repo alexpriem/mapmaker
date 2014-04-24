@@ -32,13 +32,18 @@ function Datatable () {
 				{ keys.sort(function(a,b){return a-b}); }
 
 			console.log(keys);
-			var s=this.header();
+			var s=datatable.header();
+			var oddeven='odd';
 			for (i=0; i<keys.length; i++) {
 				console.log(keys[i]);
-				s+=key_html[keys[i]];
+				s+=key_html[keys[i]].replace('striping',oddeven);
+				if (oddeven=='even') 
+					{oddeven='odd';}
+				else
+					{oddeven='even';}
 			}
 			$('#tabledata').html('<table>'+s+'</table>');
-			$('.data_header').on('click',this.reorder_datatable);
+			$('.data_header').on('click',datatable.reorder_datatable);
 		}
 
 
@@ -68,7 +73,7 @@ function Datatable () {
 			var row_a=0;
 			var row_b=0;
 			var row_c=0;
-			var s=this.header();
+			var s=datatable.header();
 			oddeven='odd';
 			for (i=0; i<regio_keys.length; i++){
 				regio=regio_keys[i];
@@ -91,11 +96,7 @@ function Datatable () {
 
 
 				if ((val_a!='') || (val_b!='') || (val_c!='')) {
-					line='<tr class="'+oddeven+'"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
-					if (oddeven=='even') 
-						{oddeven='odd';}
-					else
-						{oddeven='even';}
+					line='<tr class="striping"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
 					this.sort_l[regio_label2key[regio]]=line;
 					this.sort_a[val_a]=line;
 					this.sort_b[val_b]=line;

@@ -66,36 +66,51 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			chartc_min=null;	/* global for the moment */
 			chartc_max=null;
 
-			var datesel_a=charts['a'].datesel;
-			var datesel_b=charts['b'].datesel;
-			start_row_a=date_index[datesel_a].start_row;
-			start_row_b=date_index[datesel_b].start_row;
-			eind_row_a=date_index[datesel_a].eind_row;
-			eind_row_b=date_index[datesel_b].eind_row;
+			var data_a=charts['a'].chart_data;
+			var data_b=charts['b'].chart_data;
+			start_row_a=0;
+			start_row_b=0;
+			eind_row_a=data_a.length;
+			eind_row_b=data_b.length;
 			rownr_a=start_row_a;
 			rownr_b=start_row_b;
 			console.log('[a1,a2],[b1,b2]', start_row_a,eind_row_a, start_row_b, eind_row_b);
 			while ((rownr_a < eind_row_a) && (rownr_b< eind_row_b)) {
 				//console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
 				vall=null;
-				if (data[rownr_a][regioidx]<data[rownr_b][regioidx]) {
-					val= data[rownr_a][varidx];
-					row=[0, data[rownr_a][regioidx],val];
+				val_a=0;
+				val_b=0;
+				val_c='';		
+				//console.log(regio, data_a[row_a][regioidx], data_b[row_b][regioidx], data_c[row_c][regioidx], ':::',row_a,row_b, row_c);
+				if ((row_a<data_a.length) && (data_a[row_a][regioidx]==regio)) {
+					val_a=data_a[row_a][varidx];		
+					row_a++;
+				}
+				if ((row_b<data_b.length) && (data_b[row_b][regioidx]==regio)) {
+					val_b=data_b[row_b][varidx];		
+					row_b++;
+				}
+				
+				if (data_a[rownr_a][regioidx]<data_b[rownr_b][regioidx]) {
+					val= data_a[rownr_a][varidx];
+					row=[0, data_a[rownr_a][regioidx],val];
 					rownr_a++;
-				} else if (data[rownr_a][regioidx]>data[rownr_b][regioidx]) {
-					val= data[rownr_b][varidx];
-					row=[0, data[rownr_b][regioidx], -val];
+				} else if (data_a[rownr_a][regioidx]>data_b[rownr_b][regioidx]) {
+					val= data_b[rownr_b][varidx];
+					row=[0, data_b[rownr_b][regioidx], -val];
 					rownr_b++;
-				} else if (data[rownr_a][regioidx]==data[rownr_b][regioidx]) {
-					val= data[rownr_a][varidx]-data[rownr_b][varidx];
-					row=[0, data[rownr_b][regioidx], val];
+				} else if (data_a[rownr_a][regioidx]==data_b[rownr_b][regioidx]) {
+					val= data_a[rownr_a][varidx]-data_b[rownr_b][varidx];
+					row=[0, data_b[rownr_b][regioidx], val];
 					rownr_a++;
 					rownr_b++;
 				}
 			//	console.log(data[rownr_a][regioidx], ':',data[rownr_b][regioidx],'==',row);
 				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
 				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
-				console.log('prepare_c_chart:',row);
+				if (rownr_a<data_a.length-1) {
+					console.log('prepare_c_chart:',row, regio_label2key[data_b[rownr_b][regioidx]], data_a[rownr_a][regioidx],data_b[rownr_a][regioidx],val);
+				}
 				dataslice.push(row);						
 			}
 		}
