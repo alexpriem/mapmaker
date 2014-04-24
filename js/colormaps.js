@@ -5,6 +5,10 @@ var transforms=['linear','sqrt','log2','log10'];
 //function colormap_coolwarm() {};
 
 
+// http://stackoverflow.com/questions/7624920/number-sign-in-javascript
+function sign(x) {
+    return typeof x === 'number' ? x ? x < 0 ? -1 : 1 : x === x ? 0 : NaN : NaN;
+}
 
 
 /* deze moeten rekening houden met toestand: alle gradienten bijwerken of alleen actieve gradient*/
@@ -459,24 +463,27 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 
 		var transform=this.transform;
 
+		var sign_val=sign(val);
+		var absval=Math.abs(val);
+		
 		if (val==0) return 0;
 		if (transform=='sqrt') {
-					return Math.sqrt(val);
+					return sign_val*Math.sqrt(absval);
 		    	}
 		if (transform=='log2') {
 			if (val>0) {
-				return Math.log(val);
+				return sign_val*Math.log(absval);
 				} else { 
 				return 0;			
 			}	
 		}
 		if (transform=='log10') {
 			if (val>0) {
-				return Math.log(val)/Math.LN10;
-				} else { 
-					return 0;
-				}
-		   }
+				return sign_val*Math.log(absval)/Math.LN10;
+			} else { 
+				return 0;
+			}
+		}
 		return val;
 	}
 
