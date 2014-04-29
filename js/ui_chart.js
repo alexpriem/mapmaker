@@ -77,19 +77,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			console.log('[a1,a2],[b1,b2]', start_row_a,eind_row_a, start_row_b, eind_row_b);
 			while ((rownr_a < eind_row_a) && (rownr_b< eind_row_b)) {
 				//console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
-				vall=null;
-				val_a=0;
-				val_b=0;
-				val_c='';		
 				//console.log(regio, data_a[row_a][regioidx], data_b[row_b][regioidx], data_c[row_c][regioidx], ':::',row_a,row_b, row_c);
-				if ((row_a<data_a.length) && (data_a[row_a][regioidx]==regio)) {
-					val_a=data_a[row_a][varidx];		
-					row_a++;
-				}
-				if ((row_b<data_b.length) && (data_b[row_b][regioidx]==regio)) {
-					val_b=data_b[row_b][varidx];		
-					row_b++;
-				}
 				
 				if (data_a[rownr_a][regioidx]<data_b[rownr_b][regioidx]) {
 					val= data_a[rownr_a][varidx];
@@ -112,7 +100,26 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 					console.log('prepare_c_chart:',row, regio_label2key[data_b[rownr_b][regioidx]], data_a[rownr_a][regioidx],data_b[rownr_a][regioidx],val);
 				}
 				dataslice.push(row);						
+			}  // while  
+			// 'uitstekende data' toevoegen.
+			while (rownr_a< eind_row_a) {
+				val= data_a[rownr_a][varidx];
+				row=[0, data_a[rownr_a][regioidx], val];
+				rownr_a++;
+				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
+				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
+				dataslice.push(row);
 			}
+			while (rownr_b< eind_row_b) {
+				val= data_b[rownr_b][varidx];
+				row=[0, data_b[rownr_b][regioidx], -val];
+				rownr_b++;
+				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
+				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
+				dataslice.push(row);
+			}
+
+
 		}
 		if (cmode=='tot') {
 			chartc_min=total_regio_min;
@@ -179,7 +186,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		console.log('update_chart_data:',this.datesel);
 
 		selected_date=this.datesel;
-		var chart_data=[];
+		var chart_data=[];		
 		var start_row=date_index[selected_date].start_row;
 		var eind_row=date_index[selected_date].eind_row;
 		var row=data[start_row];
@@ -187,8 +194,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		var chart_max=row[varidx];				
 		
 		for (rownr=start_row; rownr<eind_row; rownr++){				
-			row=data[rownr];				
-			chart_data.push(row)
+			row=data[rownr];						
+			chart_data.push(row)				
 			if ((row[0]-selected_date)!=0) {
 				if (!((chartname=='c') && (cmode!='totsel')))  {
 					console.log("error-update choropleth", row[0],selected_date, start_row, eind_row);
@@ -202,7 +209,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 				chart_max=val;
 			}			
 		} /* for records */
-		this.chart_data=chart_data;
+		this.chart_data=chart_data;		
 		this.chart_min=chart_min;
 		this.chart_max=chart_max;
 	}
