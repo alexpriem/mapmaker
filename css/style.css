@@ -286,16 +286,16 @@ background:#d2ecf7;
 }
 
 
-#tabledata * th,td {
+
+.even {
+background-color: #d2ecf7;
 font-family:sans-serif;
 text-align:right;
 }
 
-.even {
-background-color: #d2ecf7;
-}
-
 .odd {
 background-color: #9cd7ef;
+font-family:sans-serif;
+text-align:right;
 }
 
