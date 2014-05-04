@@ -356,17 +356,16 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 
 
+	window.document.title=label;
 	/* initializatie chart */ 
 
-
+	
 	if (chartname=='a') {
-		$('#axes_1').on('click',this.click_regio);	
-		window.document.title=label;
+		$('#figure_1').on('click',this.click_regio);	
 
-		var chartdiv=document.getElementById('chartbox1');
-		var chart1=chartdiv.children[0];
-		chart1.setAttribute("id","chart_a");	
-		chart1.removeAttribute("viewBox");	
+		var chart1=document.getElementById('chart_1');
+		chart1.setAttribute("id","chart_a");
+		var chart1=document.getElementById('figure_1');
 
 		w=chart1.getAttributeNS(null,'width');
 		chart_width=parseInt(w.slice(0,w.length-2));
@@ -378,75 +377,50 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 
 	if (chartname=='b') {
-		var chartdiv=document.getElementById('chartbox1');
-		var chart1=chartdiv.children[0];
+		var chart1=document.getElementById('figure_1');		
 		var chart2 = chart1.cloneNode(true);
-		chart2.setAttribute("id","chart_b");
-		$('#chartbox2').append(chart2);
+		chart2.setAttribute("id","figure_2");
 
-	//	chart2=document.getElementById('chart2');	
-		var subnodes=chart2.childNodes;
-		/* this should not fail, 'figure_1' is always in the svg */	
+		var chart=chart2.getElementById('chart_a');
+		chart.setAttribute("id","chart_b");		
 
-		el=chart2.firstElementChild;
-		while (el) {    	
-			if (el.getAttribute('id')=='figure_1') {
-					var fignode=el;
-					break;
-				}
-    		el = el.nextElementSibling;
-  		}
-
-		fignode.setAttribute('id','figure_2');
-		axisnode=fignode.firstElementChild;
-		axisnode.setAttribute('id','axes_2');
-		groupnode=axisnode.firstElementChild;
-		while (groupnode) {
-			var pathnode=groupnode.firstElementChild;
+		
+		pathnode=chart.firstElementChild;
+		while (pathnode) {			
 			var pathid=pathnode.getAttribute('id');
 			if (pathid!=null) {
 				pathnode.setAttribute('id','b'+pathid.slice(1));
 			}
-			groupnode = groupnode.nextElementSibling;
+			pathnode = pathnode.nextElementSibling;
 		}
+		$('#chartbox2').append(chart2);
 
-
-		$('#axes_2').on('click',this.click_regio);
+		$('#figure_2').on('click',this.click_regio);
 //console.log(fignode.childNodes);
 	}
 
 
 	if (chartname=='c') {
-		var chartdiv=document.getElementById('chartbox1');
-		var chart1=chartdiv.children[0];
-		var chart3 = chart1.cloneNode(true);
-		chart3.setAttribute("id","chart_c");
-		$('#chartbox3').append(chart3);
-		var subnodes=chart3.childNodes;
-		/* this should not fail, 'figure_1' is always in the svg */	
+		var chart1=document.getElementById('figure_1');		
+		var chart2 = chart1.cloneNode(true);
+		chart2.setAttribute("id","figure_3");
 
-		el=chart3.firstElementChild;
-		while (el) {    	
-			if (el.getAttribute('id')=='figure_1') {
-					var fignode=el;
-					break;
-				}
-	    	el = el.nextElementSibling;
-	  	}
+		var chart=chart2.getElementById('chart_a');
+		chart.setAttribute("id","chart_c");		
 
-		fignode.setAttribute('id','figure_3');
-		axisnode=fignode.firstElementChild;
-		axisnode.setAttribute('id','axes_3');
-		groupnode=axisnode.firstElementChild;
-		while (groupnode) {
-			var pathnode=groupnode.firstElementChild;
+		
+		pathnode=chart.firstElementChild;
+		while (pathnode) {			
 			var pathid=pathnode.getAttribute('id');
 			if (pathid!=null) {
-				pathnode.setAttribute('id','c'+pathid.slice(1));
+				pathnode.setAttribute('id','b'+pathid.slice(1));
 			}
-			groupnode = groupnode.nextElementSibling;
+			pathnode = pathnode.nextElementSibling;
 		}
-		$('#axes_3').on('click',this.click_regio);
+		$('#chartbox3').append(chart2);
+
+		$('#figure_3').on('click',this.click_regio);
+
 	}
 	
 	

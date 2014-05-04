@@ -74,7 +74,18 @@ fill none;
 	font-size: 13px;	
 }
 
+.regio {
+  stroke: #4a4a4a;
+  stroke-width:0.5;
+  fill: #ffffff;
+}
+
 .outline {
+  stroke: #0a0a0a;
+  stroke-width:2.0;
+  fill: #0f0fff;
+  fill-opacity: 0.0;
+
 }
 
 .border {
@@ -287,3 +298,4 @@ background-color: #d2ecf7;
 .odd {
 background-color: #9cd7ef;
 }
+

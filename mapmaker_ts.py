@@ -1,14 +1,10 @@
-from shapely.geometry import Polygon
-from shapely.wkb import loads
-from osgeo import ogr, osr
-from matplotlib import pyplot
 from math import log, log10
 import os, sys, argparse, json,re
 
-import xml.etree.ElementTree as ET
-from StringIO import StringIO
-import dateutil
+import dateutil.parser
 
+from map2svg import map2svg
+import shpUtils
 
 
 
@@ -135,16 +131,7 @@ class mapmaker:
         csvfile=args["csvfile"]               
         outfile=args["outfile"]
         fullhtml=args["fullhtml"]
-
-        self.driver = ogr.GetDriverByName('ESRI Shapefile')
-        self.area_shapefile=args["area_shapefile"] 
-        self.area_sh = ogr.Open(self.area_shapefile)
-        self.area_layer = self.area_sh.GetLayer()
-
-        self.outline_shapefile=args["outline_shapefile"]
-        if self.outline_shapefile is not None:
-            self.outline_sh = ogr.Open(self.outline_shapefile)
-            self.outline_layer = self.outline_sh.GetLayer()
+        
 
         f=open (csvfile)
         varnames=f.readline().strip().split(',')
@@ -465,112 +452,45 @@ class mapmaker:
 
     def save_map (self, args):
 
-        layer=self.area_layer
+        self.area_shapefile=args["area_shapefile"] 
+        self.outline_shapefile=args["outline_shapefile"]
+
+
+        svg=map2svg (args["width"], args["height"])
+        svg.load_shapefile(self.area_shapefile)
+        svg.autoscale()
+        svgtxt=svg.build_svg(None,args['shape_fieldID'],'regio')
+        
+
+        
         mapdata=self.mapdata
-        fieldID=args['shape_fieldID']
+       
         labelID=args['shape_labelID']
         outfile=args['outfile']
 
-       
-        fig = pyplot.figure(figsize=(7, 8),dpi=300)    
-        ax = fig.add_subplot(1,1,1)
-        ax.xaxis.set_visible(False)
-        ax.yaxis.set_visible(False)
-        fig.frameon=False        
-     #   for item in [fig, ax]:
-     #       item.patch.set_visible(False)
-        
-        nonecounter=0
-        regios=[]
-        regio_ids={}
-        regiolabels={}
-        for feature in self.area_layer:
-           # print feature.GetFieldCount()        
-            regio=int(feature.GetField(fieldID))
-            if labelID is not None:
-                label=feature.GetField(labelID)
-                regiolabels[regio]=label            
-            geom=feature.GetGeometryRef()
-            if geom is not None:    
-                geometryParcel = loads(geom.ExportToWkb())
-                ids= self.draw_areas(geometryParcel, ax, None, regio)    
-                regios=regios+ids;
-                regio_ids[regio]=ids
-        print 'saving img:%s (nones:%d)' % (outfile, nonecounter)
         
         
 
         if self.outline_shapefile is not None:
-            fieldID=args['outline_fieldID']
-            labelID=args['outline_labelID']
-            outfile=args['outfile']                
-            
-            outline_regios=[]
-            outline_regio_ids={}
-            outline_labels={}
-            
-            for feature in self.outline_layer:
-               # print feature.GetFieldCount()        
-                outline_regio=int(feature.GetField(fieldID))
-                val=mapdata.get(regio,None)
-                if val is None:
-                    nonecounter+=1                
-                geom=feature.GetGeometryRef()
-                if geom is not None:    
-                    geometryParcel = loads(geom.ExportToWkb())
-                    ids= self.draw_outline(geometryParcel , ax, outline_regio)    
-                    outline_regios=outline_regios+ids;
-                    outline_regio_ids[regio]=ids
+           # print 'outline'
+            outline_shp=shpUtils.loadShapefile(self.outline_shapefile)
 
+            svgtxt+=svg.build_svg(outline_shp, args['outline_fieldID'],'outline')
+#            labelID=args['outline_labelID']
 
-        # add classes to DOM-objects
-        
-        f = StringIO()
-        pyplot.savefig(f, format="svg", bbox_inches = 'tight', pad_inches = 0)
-        tree, xmlid = ET.XMLID(f.getvalue())    
-        
-        
-        for r in regios:            
-            el = xmlid[r]  # lookup regio_id  in xml
-            children=el.findall("*")
-            child=children[0]   # altijd maar een child       
-            child.attrib.pop("clip-path")
-            child.set('class',"outline")
-            child.set('data-regio',r[1:].split('_')[0])            
-            child.set('id',r)
-           # child.attrib.pop("style")  # inline style verwijderen-- performanceissue?
-            el.attrib.pop("id")
-            #sys.exit()
-            
-            
-            
-            # lookup border around regions
-            line='l'+r[1:]    
-            el = xmlid[line]  # lookup regio_id  in xml        
-            el.set('class', "border")
-            ochildren=el.findall("*")
-            ochild=ochildren[0]
-            ochild.attrib.pop("clip-path")
-           # ochild.attrib.pop("style")
-            
-       
-        del (xmlid['patch_1'])
-        del (xmlid['patch_2'])
-        del (xmlid['patch_3'])
-        del (xmlid['patch_4'])
-        #del (xmlid['patch_5'])
-        
-        root=el.find("..")        
-        ET.ElementTree(tree).write(outfile+'.svg')
-        
-        for regio,shapes in regio_ids.items():
-            regio_ids[regio]=[shape[1:] for shape in shapes]
-        s=json.dumps(regio_ids);
+                
+        svgtxt=svg.embed_svg(svgtxt)
+        f=open (outfile+'.svg','w')
+        f.write(svgtxt)
+        f.close()        
+
+        regio_ids=svg.get_shapeids(None, args['shape_fieldID'])
+        s=json.dumps(regio_ids)
         
         f=open("js/shape_ids.js",'w')
-        f.write("var shape_ids=");
-        f.write(s);
-        f.write(';\n');
+        f.write("var shape_ids=")
+        f.write(s)
+        f.write(';\n')
         f.close()
 
         s='{}'    
@@ -660,11 +580,6 @@ class mapmaker:
 
 
     
-# Apparently, the `register_namespace` method works only with 
-# python 2.7 and up and is necessary to avoid garbling the XML name
-# space with ns0.
-ET.register_namespace("","http://www.w3.org/2000/svg")    
-
 
 parser = argparse.ArgumentParser(description='generate calendar from repeating data')
 
@@ -692,15 +607,15 @@ parser.add_argument('-title', dest='title',  help='title', required=False, defau
 parser.add_argument('-kf','--keyfile', dest='keyfile',  help='keyfile', required=False)
 parser.add_argument('-rf','--regiofile', dest='regiofile',  help='regiofile', required=False)
 parser.add_argument('-at','--agg_time', dest='agg_time',  help='aggegrate by time-axis', required=False, default=False,  action='store_true')
+        
+parser.add_argument('-wi','--width', dest='width',  help='width', required=False, default=340)
+parser.add_argument('-he','--height', dest='height',  help='height', required=False, default=460)
 
 args=vars(parser.parse_args())
 m=mapmaker(args)
 
 
 m.read_files()
-
-
-
 
 
 #print mapdata.items()
