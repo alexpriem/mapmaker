@@ -174,7 +174,7 @@ function Datatable () {
 
 
 				if ((val_a!='') || (val_b!='') || (val_c!='')) {
-					line='<tr class="striping"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
+					line='<tr class="striping data_data"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
 					this.sort_l[regio_label2key[regio]]=line;
 					if (val_a!='') {
 						this.sort_a[val_a]=line;

@@ -285,17 +285,17 @@ font-size: 13px;
 background:#d2ecf7;
 }
 
+.data_header, .data_data {
+font-family:sans-serif;
+text-align:right;
 
+}
 
 .even {
 background-color: #d2ecf7;
-font-family:sans-serif;
-text-align:right;
 }
 
 .odd {
 background-color: #9cd7ef;
-font-family:sans-serif;
-text-align:right;
 }
 
