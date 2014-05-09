@@ -96,9 +96,6 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			//	console.log(data[rownr_a][regioidx], ':',data[rownr_b][regioidx],'==',row);
 				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
 				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
-				if (rownr_a<data_a.length-1) {
-					console.log('prepare_c_chart:',row, regio_label2key[data_b[rownr_b][regioidx]], data_a[rownr_a][regioidx],data_b[rownr_a][regioidx],val);
-				}
 				dataslice.push(row);						
 			}  // while  
 			// 'uitstekende data' toevoegen.

@@ -200,9 +200,4 @@ function Datatable () {
 		$('#tabledata').show();
 		}
 
-
-
-
-		
-
 }

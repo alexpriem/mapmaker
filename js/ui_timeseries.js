@@ -24,15 +24,15 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 	// d3 calculates dates according to exact position, so we have to lookup the nearest date in our data. 
 	// Faster but trickier solution would be to use rounding. This is guaranteed to work, but slower.
 
-		mind=data[0][0];
-		mindiff=Math.abs(currentdate-mind);
+		var datesel=data[0][0];
+		mindiff=Math.abs(currentdate-datesel);
 		for (var d in date_index) {
 	  		if (date_index.hasOwnProperty(d)) {
 	  			var d2=new Date(d);
 	  			//console.log('datediff:',  Math.abs(datesel-d2), mindiff, mind);
 	  			if (Math.abs(currentdate-d2)<mindiff) {
 	  				mindiff=Math.abs(currentdate-d2);
-	  				mind=d2;
+	  				datesel=d2;
 	  			}
 	  		}
 	  	}
@@ -41,12 +41,15 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 		//datesel=10000*newdate.getFullYear()+100*(newdate.getMonth()+1)+newdate.getDate();			
 
 		var chart=charts[chartname];
-	  	chart.datesel=mind;  	
-	  	timeserie.datesel=mind;	  	
+	  	chart.datesel=datesel;  	
+	  	timeserie.datesel=datesel;	  	
 		chart.update_choropleth();
+		if ((chartname!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten				
 		timeserie.update_ts_sel();
-
-		if ((chartname!='c') && (cmode!='tot')) charts['c'].update_choropleth();  // verschil updaten		
+		if (display_datatable) {
+			datatable.update_datatable();
+		}
+		
 		return false;
 	}
 
