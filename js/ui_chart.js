@@ -35,20 +35,24 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 	this.click_regio=function (evt) {
 
-		this.regiosel=evt.target.getAttribute('data-regio');
+
+		var clicked_regio=evt.target.getAttribute('data-regio');
+
+		if (clicked_regio==null) return false; //buiten kaart geklikt.
+		this.regiosel=clicked_regio;
+
 		var clicked_id=evt.target.getAttribute('id');	// regio's hebben formaat 'a361_1' -chartnummer,regio,_,shapenr_voor_regio
 		var chartname=clicked_id.slice(0,1);
 
 		// TESTME -- handling multiple selections.
-		selected_charts=[chartname];
-
-		clickedregio=clicked_id.split('_')[0].slice(1);
-		regiolabel=regio_label2key[clickedregio];
-		console.log('click_regio:',clickedregio,this.regiosel, chartname);		
+		//selected_charts=[chartname];
+		
+		regiolabel=regio_label2key[clicked_regio];
+		console.log('click_regio:',clicked_regio, regiolabel, chartname);		
 	//	$('#label_'+chartname).text(regiolabel);
 		$('#svg_ts'+chartname).remove();		
 		var timeserie=timeseries[chartname];
-		timeserie.regiosel=this.regiosel;		
+		timeserie.regiosel=clicked_regio;
 		timeserie.update_ts();
 		return false;
 		}
