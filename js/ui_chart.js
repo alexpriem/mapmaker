@@ -54,6 +54,9 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		var timeserie=timeseries[chartname];
 		timeserie.regiosel=clicked_regio;
 		timeserie.update_ts();
+		if (cmode=='diff') {					// bij verschil ook timeseries C bijwerken.
+			timeseries['c'].update_ts();
+		}
 		return false;
 		}
 
@@ -167,11 +170,10 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			}  // while  
 			this.origdata=origdata;
 			results=linear_regression(origdata); //returns a,b, r2
-			this.regressie_info=results;
-			this.chart_data=results.residuals;
+			this.regressie_info=results;			
 			dataslice=results.residuals;
 
-			for (i=0; i<this.chart_data.length; i++) { 
+			for (i=0; i<dataslice.length; i++) { 
 				val=dataslice[i][2];
 				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
 				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
@@ -181,7 +183,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		this.chart_max=chartc_max;
 		}   // regressie
 
-
+		this.chart_data=dataslice;
 		console.log ('prepare_c_chart:',cmode, dataslice);		
 	}
 
@@ -420,8 +422,8 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 		w=chart1.getAttributeNS(null,'width');
 		chart_width=parseInt(w.slice(0,w.length-2));
-		chart1.setAttributeNS(null,'width',(chart_width-50)+'pt');
-		chart1.setAttributeNS(null,'padding',-50+'px');
+		//chart1.setAttributeNS(null,'width',chart_width+'pt');
+		//chart1.setAttributeNS(null,'padding',-50+'px');
 		h=chart1.getAttributeNS(null,'height');
 		chart_height=h.slice(0,h.length-2);
 	}

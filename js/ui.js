@@ -32,6 +32,7 @@ var datamax;
 
 var current_chart='a';
 var cmode='regressie';
+var cmode='diff';
 var datestyle='YMD';
 
 var display_datatable=false;  // datatable of chart

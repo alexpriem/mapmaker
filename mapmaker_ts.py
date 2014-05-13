@@ -609,8 +609,8 @@ parser.add_argument('-kf','--keyfile', dest='keyfile',  help='keyfile', required
 parser.add_argument('-rf','--regiofile', dest='regiofile',  help='regiofile', required=False)
 parser.add_argument('-at','--agg_time', dest='agg_time',  help='aggegrate by time-axis', required=False, default=False,  action='store_true')
         
-parser.add_argument('-wi','--width', dest='width',  help='width', required=False, default=340)
-parser.add_argument('-he','--height', dest='height',  help='height', required=False, default=460)
+parser.add_argument('-wi','--width', dest='width',  help='width', required=False, default=300)
+parser.add_argument('-he','--height', dest='height',  help='height', required=False, default=350)
 
 args=vars(parser.parse_args())
 m=mapmaker(args)
