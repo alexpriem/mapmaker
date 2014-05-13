@@ -34,7 +34,7 @@ var current_chart='a';
 var cmode='diff';
 var datestyle='YMD';
 
-var display_datatable=true;  // 
+var display_datatable=false;  // datatable of chart
 
 
 var MonthName = [ "January", "February", "March", "April", "May", "June",
