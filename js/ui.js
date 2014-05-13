@@ -31,7 +31,7 @@ var datamin;
 var datamax;
 
 var current_chart='a';
-var cmode='diff';
+var cmode='regressie';
 var datestyle='YMD';
 
 var display_datatable=false;  // datatable of chart
@@ -191,7 +191,7 @@ function update_cmode () {
 	console.log('update_cmode:',cmode);
 	$('.tab').removeClass('active_selectie');
 	$('#tab_'+cmode).addClass('active_selectie');
-	if ((cmode=='reg') || (cmode=='diff')) {		
+	if ((cmode=='regressie') || (cmode=='diff')) {		
 		console.log('update_cmode::set diff');
 		charts['c'].colormap.colormapname='coolwarm';
 		charts['c'].colormap.gradmax='max';

@@ -539,9 +539,10 @@ class mapmaker:
                             'js-lib/d3.v3.min.js',
                             'js-lib/chroma.min.js',
                             'js/colormaps.js',                        
-                            
-                            'js/ui_datatable.js',                                    
-                            'js/ui_timeseries.js',                            
+
+                            'js/linreg.js',
+                            'js/ui_datatable.js',
+                            'js/ui_timeseries.js',
                             'js/ui_chart.js',
                             'js/ui.js',
                             'js/data.js',

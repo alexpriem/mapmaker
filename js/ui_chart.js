@@ -63,12 +63,13 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 	this.prepare_c_chart=function () {
 
 		console.log('prepare_c_chart:');
+		chartc_min=null;	/* global for the moment */
+		chartc_max=null;
+
 		if (cmode=='diff') {
 			console.log('prepare_c_chart:diff');
 			var dataslice=[];
 			// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
-			chartc_min=null;	/* global for the moment */
-			chartc_max=null;
 
 			var data_a=charts['a'].chart_data;
 			var data_b=charts['b'].chart_data;
@@ -131,13 +132,55 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		if (cmode=='totsel') {
 			var dataslice=total_regio;
 		}
-		if (cmode=='reg') {
-			var dataslice=[];
-		}
+		if (cmode=='regressie') {
+			console.log('prepare_c_chart:regressie');
+			var origdata=[];
+			// join 2 date-slices in js;   waardes van regio's aftrekken voor datum a en b 
+			chartc_min=null;	/* global for the moment */
+			chartc_max=null;
 
-		this.chart_data=dataslice;
+			var data_a=charts['a'].chart_data;
+			var data_b=charts['b'].chart_data;
+			start_row_a=0;
+			start_row_b=0;
+			eind_row_a=data_a.length;
+			eind_row_b=data_b.length;
+			rownr_a=start_row_a;
+			rownr_b=start_row_b;
+			console.log('[a1,a2],[b1,b2]', start_row_a,eind_row_a, start_row_b, eind_row_b);
+			while ((rownr_a < eind_row_a) && (rownr_b< eind_row_b)) {
+				//console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
+				//console.log(regio, data_a[row_a][regioidx], data_b[row_b][regioidx], data_c[row_c][regioidx], ':::',row_a,row_b, row_c);
+				
+				if (data_a[rownr_a][regioidx]<data_b[rownr_b][regioidx]) {
+					rownr_a++;
+				} else if (data_a[rownr_a][regioidx]>data_b[rownr_b][regioidx]) {
+					rownr_b++;
+				} else if (data_a[rownr_a][regioidx]==data_b[rownr_b][regioidx]) {
+					val_a= data_a[rownr_a][varidx];
+					val_b= data_b[rownr_b][varidx];
+					row=[data_a[rownr_a][regioidx], val_a, val_b];
+					rownr_a++;
+					rownr_b++;
+					origdata.push(row);
+				}										
+			}  // while  
+			this.origdata=origdata;
+			results=linear_regression(origdata); //returns a,b, r2
+			this.regressie_info=results;
+			this.chart_data=results.residuals;
+			dataslice=results.residuals;
+
+			for (i=0; i<this.chart_data.length; i++) { 
+				val=dataslice[i][2];
+				if ((chartc_min==null) || (val<chartc_min)) {chartc_min=val;}
+				if ((chartc_max==null) || (val>chartc_max)) {chartc_max=val;}
+			}		
+
 		this.chart_min=chartc_min;
 		this.chart_max=chartc_max;
+		}   // regressie
+
 
 		console.log ('prepare_c_chart:',cmode, dataslice);		
 	}
