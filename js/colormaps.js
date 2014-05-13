@@ -368,7 +368,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 	this.draw_colormap=function () {
 
 		var chartname=this.chartname;
-		console.log("draw_colormap", this.chartname, this.colormapname, this.transform, this.gradsteps);
+		console.log("draw_colormap:", this.chartname, this.colormapname, this.transform, this.gradsteps);
 
 		var colormapclassname='colormap_'+chartname;
 		$('.'+colormapclassname).remove();		
@@ -471,18 +471,10 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 					return sign_val*Math.sqrt(absval);
 		    	}
 		if (transform=='log2') {
-			if (val>0) {
-				return sign_val*Math.log(absval);
-				} else { 
-				return 0;			
-			}	
+				return sign_val*Math.log(absval);		
 		}
 		if (transform=='log10') {
-			if (val>0) {
 				return sign_val*Math.log(absval)/Math.LN10;
-			} else { 
-				return 0;
-			}
 		}
 		return val;
 	}
