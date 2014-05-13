@@ -126,7 +126,9 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 					ydata_c.push(ydata_a[rownr_a] - ydata_b[rownr_b] );
 				}								
 			}  // while  			
-			this.ts_label='Verschil';
+			label_a=regio_label2key[timeseries['a'].regiosel];
+			label_b=regio_label2key[timeseries['b'].regiosel];
+			this.ts_label='Verschil '+label_a+'-'+ label_b;
 		}
 		if (cmode=='reg') {
 			var regioreeks=total_date;

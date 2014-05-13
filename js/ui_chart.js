@@ -380,10 +380,14 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 				datelabel='Totaal sel (periode)';
 			}
 			if (cmode=='diff') {
-				datelabel='Verschil';
+				label_a=dateformat(charts['a'].datesel, datestyle);
+				label_b=dateformat(charts['b'].datesel, datestyle);
+				datelabel='Verschil: ' + label_a + '-' + label_b;
 			}
 			if (cmode=='reg') {
-				datelabel='Regressie';
+				label_a=dateformat(charts['a'].datesel, datestyle);
+				label_b=dateformat(charts['b'].datesel, datestyle);
+				datelabel='Regressie' + label_a + 'vs' + label_b;
 			}
 		} else {			
 			var datelabel=dateformat(selected_date, datestyle);
