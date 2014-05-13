@@ -169,7 +169,12 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 	colorstring ="rgb("+color[0]+","+color[1]+","+color[2]+")";
 		//console.log('#r'+key+'_1',s);
 		//console.log('set_shape_color_by_value:',regio,colorstring)
-	el_ids=shape_ids[regio];				
+	el_ids=shape_ids[regio];			
+	/* // extra debugging
+	if (chartname=='c') {
+		console.log('set_shape_color_by_value:',regio, val, colorindex, colorstring);
+	}
+	*/
 	if (typeof(el_ids)!="undefined") {
 		for (i=0; i<el_ids.length; i++) {
 			el_id='#'+chartname+el_ids[i];						
@@ -271,6 +276,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		colormap.tgradmax=colormap.color_transform(gradient_max);		
 		colormap.tdelta=colormap.tgradmax-colormap.tgradmin;
 
+		colormap.calculate_colormap();
 		colormap.draw_colormap(chartname); 
 
 
@@ -300,8 +306,9 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			                                    // nieuwe waarde ongelijk vorige waarde
 			new_regiocolors[regio]=val; 
 			if ((forced_update) || (val!=prev_val)) {
-				//console.log('regio,p,v',regio,prev_val,val);							
-				val=colormap.color_transform(val);						
+
+				//if (chartname=='c') { console.log('regio,p,v',regio,prev_val,val);}
+				val=colormap.color_transform(val);		
 				this.set_shape_color_by_value (regio,val);
 			}
 		} /* for records */
@@ -414,7 +421,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 		while (pathnode) {			
 			var pathid=pathnode.getAttribute('id');
 			if (pathid!=null) {
-				pathnode.setAttribute('id','b'+pathid.slice(1));
+				pathnode.setAttribute('id','c'+pathid.slice(1));
 			}
 			pathnode = pathnode.nextElementSibling;
 		}
