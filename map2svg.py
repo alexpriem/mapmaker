@@ -75,7 +75,7 @@ class map2svg():
 
 
 
-    def build_svg (self, shpRecords=None, field_id=None,classname='', closepath=False):
+    def build_svg (self, shpRecords=None, field_id=None,classname='', include_data_regio=True, closepath=False):
 
         if shpRecords is None:
             shpRecords=self.shaperecords            
@@ -101,7 +101,10 @@ class map2svg():
                 
                 x = []
                 y = []
-                s='<path %s id="a%d_%d" data-regio="%d" d=" ' % (classtxt,shape_id, shape_nr, shape_id)
+                if include_data_regio:
+                    s='<path %s id="a%d_%d" data-regio="%d" d=" ' % (classtxt,shape_id, shape_nr, shape_id)
+                else:
+                    s='<path %s id="a%d_%d" d=" ' % (classtxt,shape_id, shape_nr) 
                 point=poly['points'][0]        
                 tempx = ((float(point['x'])-minx)/dx)*width
                 tempy = height - ((float(point['y'])-miny)/dy)*height

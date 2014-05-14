@@ -206,7 +206,7 @@ function change_cmode () {
 	cmode=$(this).attr('data-tab');
 	console.log('change_cmode:',cmode);
 	update_cmode();	
-	update_cmode_settings();	
+//	update_cmode_settings();	
 	charts['c'].update_choropleth();	// FIXME: 'c' uit context halen
 }
 

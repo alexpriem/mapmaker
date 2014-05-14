@@ -471,7 +471,7 @@ class mapmaker:
            # print 'outline'
             outline_shp=shpUtils.loadShapefile(self.outline_shapefile)
 
-            svgtxt+=svg.build_svg(outline_shp, args['outline_fieldID'],'outline')
+            svgtxt+=svg.build_svg(outline_shp, args['outline_fieldID'],'outline',include_data_regio=False)
 #            labelID=args['outline_labelID']
 
                 
