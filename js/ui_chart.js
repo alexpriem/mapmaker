@@ -450,7 +450,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			}
 			pathnode = pathnode.nextElementSibling;
 		}
-		$('#chartbox2').append(chart2);
+		$('#chartbox_b').append(chart2);
 
 		$('#figure_2').on('click',this.click_regio);
 //console.log(fignode.childNodes);
@@ -459,10 +459,10 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 
 	if (chartname=='c') {
 		var chart1=document.getElementById('figure_1');		
-		var chart2 = chart1.cloneNode(true);
-		chart2.setAttribute("id","figure_3");
+		var chart3 = chart1.cloneNode(true);
+		chart3.setAttribute("id","figure_3");
 
-		var chart=chart2.getElementById('chart_a');
+		var chart=chart3.getElementById('chart_a');
 		chart.setAttribute("id","chart_c");		
 
 		
@@ -474,7 +474,7 @@ function Chart (chartname, default_datesel, default_regiosel, default_varsel,
 			}
 			pathnode = pathnode.nextElementSibling;
 		}
-		$('#chartbox3').append(chart2);
+		$('#chartbox_c').append(chart3);
 
 		$('#figure_3').on('click',this.click_regio);
 

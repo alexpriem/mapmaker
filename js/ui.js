@@ -446,15 +446,15 @@ function update_date_selectie () {
 function update_datatable_chart_visibility () {
 
 if (!display_datatable) {
- 	$('#chartbox1').show();
- 	$('#chartbox2').show();
- 	$('#chartbox3').show();
+ 	$('#chartbox_a').show();
+ 	$('#chartbox_b').show();
+ 	$('#chartbox_c').show();
  	$('#tabledata').hide();
 } else {
 	datatable.update_datatable();
- 	$('#chartbox1').hide();
- 	$('#chartbox2').hide();
- 	$('#chartbox3').hide();
+ 	$('#chartbox_a').hide();
+ 	$('#chartbox_b').hide();
+ 	$('#chartbox_c').hide();
  	$('#tabledata').show();	
  }
 

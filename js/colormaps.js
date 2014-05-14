@@ -317,7 +317,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		if 	(typeof(SVGForeignObjectElement)!== 'undefined') {
 			$('.ie_fallback').remove();
 			var chart = d3.select("#chart_"+chartname);
-			var svg=document.getElementById('chartbox1').children[0];  // FIXME: juiste element pakken. ipv chartbox1
+			var svg=document.getElementById('chartbox_'+chartname).children[0];  // FIXME: juiste element pakken. ipv chartbox1
 			w=svg.getAttributeNS(null,'width');		
 			var imgwidth=parseInt(w.slice(0,w.length-2));
 			console.log('init_colormap_inputs: imgwidth:',imgwidth);
@@ -376,7 +376,7 @@ function Colormap (chartname, colormapname, transform, gradmin,gradsteps,gradmax
 		var barstep=(barlength/this.gradsteps);
 		var chart = d3.select("#chart_"+chartname);
 		//console.log(barlength, barstep);
-		var svg=document.getElementById('chartbox1').children[0];
+		var svg=document.getElementById('chartbox_'+chartname).children[0];
 		w=svg.getAttributeNS(null,'width');		
 		var imgwidth=parseInt(w.slice(0,w.length-2));
 		var transform=this.transform;
