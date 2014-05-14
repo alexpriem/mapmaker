@@ -22,11 +22,12 @@ class mapmaker:
         if keyfile is not None:
             f=open(keyfile)
             f.readline()
-            for line in f.readlines():
+            for nr,line in enumerate(f.readlines()):
                 keyvalue=line.strip().split(sep)                
                 if len(keyvalue)!=2:
-                    raise RuntimeError("expected key/value pairs in file:"+keyfile)
+                    raise RuntimeError("line %d:expected key/value pairs in file:%s" % (nr,keyfile))
                 keylabel[keyvalue[0]]=keyvalue[1]
+                
         return keylabel
 
     def write_keyfile(self,filename,keydict,prefix):
@@ -463,13 +464,8 @@ class mapmaker:
         
 
         
-        mapdata=self.mapdata
-       
-        labelID=args['shape_labelID']
+        mapdata=self.mapdata       
         outfile=args['outfile']
-
-        
-        
 
         if self.outline_shapefile is not None:
            # print 'outline'
@@ -492,11 +488,6 @@ class mapmaker:
         f.write(s)
         f.write(';\n')
         f.close()
-
-        s='{}'    
-        if labelID is not None:
-            self.write_keyfile('js/regiolabels.js',labels,'regio')
-
 
 
 
