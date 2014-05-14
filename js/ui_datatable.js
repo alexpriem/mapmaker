@@ -2,6 +2,24 @@
 
 
 
+function click_datatable_regio (evt){
+
+// met event aan tr gebonden is responsiever, maar moet dan target oppakken van parent. FIXME.
+
+	var clicked_regio=evt.target.getAttribute('data-regio');  
+	console.log('click_datatable_regio:',clicked_regio, selected_chart);
+
+	var timeserie=timeseries[selected_chart];
+	timeserie.regiosel=clicked_regio;
+	timeserie.update_ts();
+	if (cmode=='diff') {					// bij verschil ook timeseries C bijwerken.
+		timeseries['c'].update_ts();
+	}
+
+}
+
+
+
 function Datatable () {
 
 	this.sortorder='up';
@@ -174,7 +192,7 @@ function Datatable () {
 
 
 				if ((val_a!='') || (val_b!='') || (val_c!='')) {
-					line='<tr class="striping data_data"> <th>'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
+					line='<tr class="striping data_data"> <th class="data_regio" data-regio="'+regio+'">'+regio_label2key[regio]+'  </th><td>'+val_a+'</td><td>'+val_b+'</td><td>'+val_c+'</td></tr>';							
 					this.sort_l[regio_label2key[regio]]=line;
 					if (val_a!='') {
 						this.sort_a[val_a]=line;
@@ -196,8 +214,11 @@ function Datatable () {
 			}			
 			//	console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
 
+
 		this.reorder_datatable('l');
+		$('.data_regio').on('click',click_datatable_regio);
 		$('#tabledata').show();
+		
 		}
 
 }

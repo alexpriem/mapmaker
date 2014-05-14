@@ -111,7 +111,7 @@ function TimeSeries(chartname,default_datesel, default_regiosel, default_varsel)
 			while ((rownr_a < eind_row_a) && (rownr_b< eind_row_b)) {
 				//console.log(rownr_a, ':',rownr_b,'==',data[rownr_a][regioidx], ':',data[rownr_b][regioidx]);
 				//console.log(regio, data_a[row_a][regioidx], data_b[row_b][regioidx], data_c[row_c][regioidx], ':::',row_a,row_b, row_c);
-				console.log(rownr_a, rownr_b, xdata_a[rownr_a]-xdata_b[rownr_b]);
+				//console.log(rownr_a, rownr_b, xdata_a[rownr_a]-xdata_b[rownr_b]);
 				if ((xdata_a[rownr_a] - xdata_b[rownr_b])<0) {
 					rownr_a++;
 				} else if ((xdata_a[rownr_a] - xdata_b[rownr_b] )>0) {
