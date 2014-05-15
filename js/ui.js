@@ -435,8 +435,16 @@ function update_date_selectie () {
 	// FIXME: stub code
 	var newdate=$('#dateentry').val();
 	console.log('update_regio_selectie:',newdate);
-	newdate=new Date(newdate);
+	newdate=parseInt(newdate);
 	var chart=charts[selected_chart];
+
+	var year=Math.floor(newdate/10000);
+	var month=Math.floor((newdate-year*10000)/100);
+	var day=Math.floor(newdate-year*10000-month*100);
+	console.log(year,month,day);
+	// sanity checks doen op datum: geldig (try/catch), in bereik van dataset.
+	newdate=new Date(year,month-1,day);
+	console.log('update_regio_selectie:',chart.datesel, newdate);
 	chart.datesel=newdate;
 	chart.update_choropleth();	
 }
@@ -529,6 +537,7 @@ function init_svg(){
 
 	$('#regioentry').typeahead({source:regio_labels,  valueKey: "Regio"});
 	$('#regioentry').on('change',update_regio_selectie);
+	$('#dateentry').on('change',update_date_selectie);
 	setup_vars();		
 	init_movie_ui();
 	update_cmode();
