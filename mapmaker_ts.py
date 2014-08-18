@@ -50,48 +50,7 @@ class mapmaker:
             f.write("var %s_key2label=%s;\n\n" %(prefix,dicttxt));
             f.close()
 
-    def draw_areas(self,p,graph,color,regio_id):
-
-        # returns a list of dom-id's for every polygon drawn
-        # (multipolygons get
-        # dom-id format:  r%regioid_%counter
-        #
-
-        if color is None:
-            color=(1.0,1.0,1.0)
-        bordercolor=(120/255.0,120/255.0,120/255.0)
-        borderwidth=0.5
-        
-        if not(hasattr(p,'geoms')):            
-            xList,yList = p.exterior.xy
-            h=graph.fill(xList,yList, color=color)
-            l=graph.plot(xList,yList, 
-                       color=bordercolor,
-                       linewidth=borderwidth)
-            for il, element in enumerate(h):
-                element.set_gid ("a%d_1" % regio_id)
-            for il, element in enumerate(l):
-                element.set_gid ("l%d_1" % regio_id )
-            return ["a%d_1" % regio_id]
-        else:
-            j=1
-            regs=[]
-            for poly in p:
-                xList,yList = poly.exterior.xy
-                h=graph.fill(xList,yList, color=color)
-                l=graph.plot(xList,yList,
-                            color=bordercolor,
-                            linewidth=borderwidth)            
-                for il, element in enumerate(h):
-                    element.set_gid ("a%d_%d" % (regio_id,j) )   # polylines gaan niet goed
-                
-                for il, element in enumerate(l):
-                    element.set_gid ("l%d_%d" % (regio_id,j) )                
-                regs.append("a%d_%d" % (regio_id, j))                
-                j+=1            
-            return regs
-
-
+    
     def draw_outline(self,p,graph,outline_id):
 
         # returns a list of dom-id's for every polygon drawn
